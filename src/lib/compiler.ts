@@ -1,5 +1,6 @@
 import { type Slideshow, type Slide, type SlideElement, ElementType } from "./types";
 import { ELEMENT_PARSERS } from "./elementParsers";
+import { ESC_CHAR } from "./constants"; 
 
 // match any lines in the form '---{SLIDEINFO}'
 const SLIDE_REGEX = /^---(.*)$/
@@ -19,6 +20,7 @@ export const processMarkup = (markup : string) => {
 
     const lines = markup.split(LINE_SEP_REGEX)
 
+    // below code splits up the markdown into metadata lines and slide lines
     const metadataLines : string[] = [];
     const slideLines : string[][] = [];
     const slideNames : string[] = [];
@@ -39,20 +41,23 @@ export const processMarkup = (markup : string) => {
     // step 1: parse metadata
     const metadata = parseMetadata(metadataLines);
 
-    // step 2: parse slides
-    const slides = slideLines.map((slide, i) => {
-        return parseSlide(slide, slideNames[i]);
+    const slides = slideLines.map((slideLines, i) => {
+        // step 2: parse slides
+        let slide = parseSlide(slideLines, slideNames[i]);
+
+        // step 3: deal with multi-line elements like lists and code blocks
+        slide = postProcessSlide(slide, slideLines);
+
+        // step 4: deal with intra-line elements like bold and italics
+        slide = addSpans(slide);
+
+        return slide;
     });
 
-    // step 3: deal with multi-line elements like lists and code blocks
-    const slidesWithMultline : Slide[] = [];
-    for (let i = 0; i < slides.length; i++) {
-        slidesWithMultline.push(postProcesSlide(slides[i], slideLines[i]));
-    }
 
     return {
         metadata: metadata,
-        slides: slidesWithMultline
+        slides: slides
     } as Slideshow;
 }
 
@@ -69,6 +74,9 @@ const preprocessMarkup = (markup : string) => {
     markup = markup.replace(/&/g, '&amp;');
     markup = markup.replace(/</g, '&lt;');
     markup = markup.replace(/>/g, '&gt;');
+
+    // escape special characters
+    markup = markup.replace(ESC_CHAR, `${ESC_CHAR}${ESC_CHAR}`);
 
     return markup;
 }
@@ -115,7 +123,7 @@ const parseSlide = (slideLines : string[], slideName : string) => {
  * @param {string[]} slideLines: the lines in the slide (in case original formatting is needed)
  * @returns {Slide}: the post-processed slide
  */
-const postProcesSlide = (slide : Slide, slideLines : string[]) => {
+const postProcessSlide = (slide : Slide, slideLines : string[]) => {
     const out : SlideElement[] = [];
 
     // handle lists
@@ -158,4 +166,57 @@ const postProcesSlide = (slide : Slide, slideLines : string[]) => {
         title: slide.title,
         contents: out
     } as Slide;
+}
+
+const addSpans = (slide : Slide) => {
+    return {
+        title: slide.title,
+        contents: slide.contents.map((element) => {
+            return addSpansToElement(element);
+        })
+    } as Slide;
+}
+
+const addSpansToElement = (element : SlideElement) => {
+    let newValue : string = '';
+
+    const BACKSLASH_CHARS = ['_', '$', '\\'];
+
+    let lastSeenU = null;
+    let lastSeenD = null;
+
+    for (let i = 0; i < element.value.length; i++) {
+        const char = element.value[i];
+        if (char === "\\") {
+            if (i + 1 < element.value.length && BACKSLASH_CHARS.includes(element.value[i + 1])) {
+                i++;
+                newValue += element.value[i];
+            } else {
+                newValue += '\\';
+            }
+        } else if (char == '_') {
+            if (lastSeenU === null) {
+                lastSeenU = newValue.length;
+                newValue += '_';
+            } else {
+                newValue += `${ESC_CHAR}b`;
+                newValue = newValue.slice(0, lastSeenU) + `${ESC_CHAR}a` + newValue.slice(lastSeenU + 1);
+                lastSeenU = null;
+            }
+        } else if (char == '$') {
+            if (lastSeenD === null) {
+                lastSeenD = newValue.length;
+                newValue += '$';
+            } else {
+                newValue += `${ESC_CHAR}d`;
+                newValue = newValue.slice(0, lastSeenD) + `${ESC_CHAR}c` + newValue.slice(lastSeenD + 1);
+                lastSeenD = null;
+            }
+        }
+        else {
+            newValue += char;
+        }
+    }
+    element.value = newValue;
+    return element;
 }
