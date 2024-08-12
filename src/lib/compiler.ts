@@ -1,4 +1,4 @@
-import type { Slideshow, Slide, SlideElement } from "./types";
+import { type Slideshow, type Slide, type SlideElement, ElementType } from "./types";
 import { ELEMENT_PARSERS } from "./elementParsers";
 
 // match any lines in the form '---{SLIDEINFO}'
@@ -44,10 +44,33 @@ export const processMarkup = (markup : string) => {
         return parseSlide(slide, slideNames[i]);
     });
 
+    // step 3: deal with multi-line elements like lists and code blocks
+    const slidesWithMultline : Slide[] = [];
+    for (let i = 0; i < slides.length; i++) {
+        slidesWithMultline.push(postProcesSlide(slides[i], slideLines[i]));
+    }
+
     return {
-        metadata,
-        slides
+        metadata: metadata,
+        slides: slidesWithMultline
     } as Slideshow;
+}
+
+/**
+ * @param {string} markup: string containing the raw markup
+ * @returns {string}: the preprocessed markup
+ */
+const preprocessMarkup = (markup : string) => {
+    // standardize line endings
+    markup = markup.replace(/\r\n/g, '\n');
+    markup = markup.replace(/\r/g, '\n');
+
+    // replace special characters
+    markup = markup.replace(/&/g, '&amp;');
+    markup = markup.replace(/</g, '&lt;');
+    markup = markup.replace(/>/g, '&gt;');
+
+    return markup;
 }
 
 /**
@@ -88,21 +111,51 @@ const parseSlide = (slideLines : string[], slideName : string) => {
 }
 
 /**
- * Standardize and preprocess the markup
- * 
- * 
- * @param {string} markup: string containing the raw markup
- * @returns {string}: the preprocessed markup
+ * @param {Slide} slide: the slide to post-process
+ * @param {string[]} slideLines: the lines in the slide (in case original formatting is needed)
+ * @returns {Slide}: the post-processed slide
  */
-const preprocessMarkup = (markup : string) => {
-    // standardize line endings
-    markup = markup.replace(/\r\n/g, '\n');
-    markup = markup.replace(/\r/g, '\n');
+const postProcesSlide = (slide : Slide, slideLines : string[]) => {
+    const out : SlideElement[] = [];
 
-    // replace special characters
-    markup = markup.replace(/&/g, '&amp;');
-    markup = markup.replace(/</g, '&lt;');
-    markup = markup.replace(/>/g, '&gt;');
+    // handle lists
+    let currList : SlideElement | null = null;
+    let currListType : string | null = null;
+    slide.contents.forEach((element) => {
+        const type = element.data;
 
-    return markup;
+        // if we've reached the end of this list, push it to the output
+        if (currList && type !== currListType) {
+            out.push(currList);
+            currList = null;
+        }
+
+        if (element.type === ElementType.LIST_ELEMENT && typeof type === 'string') {
+            if (currList && currList.children && type === currListType) {
+                // if we're already in a list, add this element to it
+                currList.children.push(element);
+            } else {
+                // otherwise, start a new list
+                currList = {
+                    type: ElementType.LIST,
+                    value: '',
+                    children: [element],
+                    data: type
+                } as SlideElement
+                currListType = type;
+            }
+        } else {
+            // by default keep the element as is
+            out.push(element);
+        }
+    })
+
+    if (currList) {
+        out.push(currList);
+    }
+
+    return {
+        title: slide.title,
+        contents: out
+    } as Slide;
 }

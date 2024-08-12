@@ -7,6 +7,7 @@ type ElementParser = {
 
 const HeaderParser : ElementParser = {
     parse: (line) => {
+        // match 1-6 '#' characters at the beginning of the line
         const res = /^(#{1,6})(.*$)/.exec(line)
         if (!res) {
             return null
@@ -19,8 +20,39 @@ const HeaderParser : ElementParser = {
     }
 }
 
+const ULParser : ElementParser = {
+    parse: (line) => {
+        // match a line starting with a '-' or * character, then a space (optional starting whitespace)
+        const res = /^\s?[-*]\s{1}(.*)$/.exec(line)
+        if (!res) {
+            return null
+        }
+        return {
+            type: ElementType.LIST_ELEMENT,
+            value: res[1],
+            data: 'ul'
+        } as SlideElement
+    }
+}
+
+const OLParser : ElementParser = {
+    parse: (line) => {
+        // match a line starting with a 'NUMBER. ' sequence (optional whitespace)
+        const res = /^\s?[0-9]+\.\s{1}(.*)$/.exec(line)
+        if (!res) {
+            return null
+        }
+        return {
+            type: ElementType.LIST_ELEMENT,
+            value: res[1],
+            data: 'ol'
+        } as SlideElement
+    }
+}
+
 const TextParser : ElementParser = {
     parse: (line) => {
+        // fallthrough case, return a text element
         return {
             type: ElementType.TEXT,
             value: line
@@ -28,4 +60,4 @@ const TextParser : ElementParser = {
     }
 }
 
-export const ELEMENT_PARSERS = [HeaderParser, TextParser]
+export const ELEMENT_PARSERS = [HeaderParser, OLParser, ULParser, TextParser]
