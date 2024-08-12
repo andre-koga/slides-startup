@@ -178,45 +178,68 @@ const addSpans = (slide : Slide) => {
 }
 
 const addSpansToElement = (element : SlideElement) => {
-    let newValue : string = '';
+    const BACKSLASH_CHARS = ['_', '$', '*', '**', '\\'];
 
-    const BACKSLASH_CHARS = ['_', '$', '\\'];
-
-    let lastSeenU = null;
-    let lastSeenD = null;
-
-    for (let i = 0; i < element.value.length; i++) {
-        const char = element.value[i];
-        if (char === "\\") {
-            if (i + 1 < element.value.length && BACKSLASH_CHARS.includes(element.value[i + 1])) {
-                i++;
-                newValue += element.value[i];
-            } else {
-                newValue += '\\';
-            }
-        } else if (char == '_') {
-            if (lastSeenU === null) {
-                lastSeenU = newValue.length;
-                newValue += '_';
-            } else {
-                newValue += `${ESC_CHAR}b`;
-                newValue = newValue.slice(0, lastSeenU) + `${ESC_CHAR}a` + newValue.slice(lastSeenU + 1);
-                lastSeenU = null;
-            }
-        } else if (char == '$') {
-            if (lastSeenD === null) {
-                lastSeenD = newValue.length;
-                newValue += '$';
-            } else {
-                newValue += `${ESC_CHAR}d`;
-                newValue = newValue.slice(0, lastSeenD) + `${ESC_CHAR}c` + newValue.slice(lastSeenD + 1);
-                lastSeenD = null;
-            }
+    const SPANS = [
+        {
+            identifier: '_',
+            escStart: 'a',
+            escEnd: 'b',
+        },
+        {
+            identifier: '$',
+            escStart: 'c',
+            escEnd: 'd',
+        },
+        {
+            identifier: '**',
+            escStart: 'e',
+            escEnd: 'f',
+        },
+        {
+            identifier: '*',
+            escStart: 'g',
+            escEnd: 'h',
         }
-        else {
-            newValue += char;
+    ]
+    
+    // one pass for each type of span
+    for (const span of SPANS) {
+        let lastSeen = null;
+
+        for (let i = 0; i <= element.value.length - span.identifier.length; i++) {
+            const val = element.value.slice(i, i + span.identifier.length);
+            if (element.value[i] === '\\') {
+                i++;
+            }
+            else if (val === span.identifier) {
+                if (lastSeen === null) {
+                    lastSeen = i;
+                } else if (i === lastSeen + 1) { // empty span (maybe switch to lastSeen + identifier.length?)
+                    lastSeen = i;
+                }
+                else {
+                    // replace start and end of span with escape characters
+                    const start = element.value.slice(0, lastSeen);
+                    const middle = element.value.slice(lastSeen + span.identifier.length, i);
+                    const end = element.value.slice(i + span.identifier.length);
+                    element.value = `${start}${ESC_CHAR}${span.escStart}${middle}${ESC_CHAR}${span.escEnd}${end}`;
+                    lastSeen = null;
+                }
+                i += span.identifier.length - 1;
+            }
         }
     }
-    element.value = newValue;
+
+    // finally, remove backslashes when they escape a special character
+    let out = '';
+    for (let i = 0; i < element.value.length; i++) {
+        if (element.value[i] === '\\' && i + 1 < element.value.length && BACKSLASH_CHARS.includes(element.value[i + 1])) {
+            i++;
+        }
+        out += element.value[i];
+    }
+    element.value = out;
+
     return element;
 }

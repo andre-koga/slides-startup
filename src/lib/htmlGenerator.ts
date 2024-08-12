@@ -40,6 +40,10 @@ const elementToHtml = (element : SlideElement) : string => {
 const ESCAPE_CHAR_MAP = new Map<string, string>();
 ESCAPE_CHAR_MAP.set('a', '<u>');
 ESCAPE_CHAR_MAP.set('b', '</u>');
+ESCAPE_CHAR_MAP.set('e', '<strong>');
+ESCAPE_CHAR_MAP.set('f', '</strong>');
+ESCAPE_CHAR_MAP.set('g', '<em>');
+ESCAPE_CHAR_MAP.set('h', '</em>');
 const MATH_START = 'c';
 const MATH_END = 'd';
 
