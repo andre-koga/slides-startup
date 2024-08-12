@@ -2,7 +2,12 @@
 export default {
 	content: ['./src/**/*.{html,js,svelte,ts}'],
 	theme: {
-		extend: {}
+		extend: {
+			fontFamily: {
+				jet: ['JetBrains Mono', 'sans-serif'],
+				text: ['Inter', 'sans-serif']
+			}
+		}
 	},
 	plugins: []
 };
