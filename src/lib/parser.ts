@@ -182,14 +182,14 @@ const addSpansToElement = (element : SlideElement) => {
 
     const SPANS = [
         {
-            identifier: '_',
-            escStart: 'a',
-            escEnd: 'b',
-        },
-        {
             identifier: '$',
             escStart: 'c',
             escEnd: 'd',
+        },
+        {
+            identifier: '_',
+            escStart: 'a',
+            escEnd: 'b',
         },
         {
             identifier: '**',
@@ -203,11 +203,23 @@ const addSpansToElement = (element : SlideElement) => {
         }
     ]
     
+    const BLOCKING_SPAN_START = ['¨c'];
+    const BLOCKING_SPAN_END = ['¨d'];
+
     // one pass for each type of span
     for (const span of SPANS) {
         let lastSeen = null;
-
+        let blocking = false;
         for (let i = 0; i <= element.value.length - span.identifier.length; i++) {
+            if (BLOCKING_SPAN_START.includes(element.value.slice(i, i + 2))) {
+                blocking = true;
+            }
+            if (BLOCKING_SPAN_END.includes(element.value.slice(i, i + 2))) {
+                blocking = false;
+            }
+            if (blocking) {
+                continue;
+            }
             const val = element.value.slice(i, i + span.identifier.length);
             if (element.value[i] === '\\') {
                 i++;
