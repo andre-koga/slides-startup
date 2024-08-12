@@ -21,5 +21,6 @@ export enum ElementType {
     LIST_ELEMENT = 'listElement',
     COMMENT = 'comment',
     EMPTY = 'empty',
-    TEXT = 'text'
+    TEXT = 'text',
+    RESOURCE = 'resource'
 }

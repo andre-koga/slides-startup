@@ -31,6 +31,14 @@ const elementToHtml = (element : SlideElement) : string => {
         `
     } else if (element.type === ElementType.LIST_ELEMENT) {
         return `<li>${element.value}</li>`
+    } else if (element.type === ElementType.RESOURCE) {
+        if (element.data && element.data.url && element.data.alt) {
+            return `<img src="${element.data.url}" alt=${element.data.alt} />`
+        } else if (element.data && element.data.url) {
+            return `<img src="${element.data.url}" />`
+        } else {
+            return ''
+        }
     }
     else if (element.type === ElementType.COMMENT || element.type == ElementType.EMPTY) {
         return '';
