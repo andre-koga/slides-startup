@@ -78,6 +78,36 @@ const CommentParser : ElementParser = {
     }
 }
 
+const ResourceParser : ElementParser = {
+    parse: (line) => {
+        // match resource in the form of ![alt text](url)
+        const res1 = /^!\[(.*)\]\((.*)\).*$/.exec(line)
+
+        // match resource in the form of !(url)
+        const res2 = /^!\[(.*)\]\((.*)\).*$/.exec(line)
+        if (res1) {
+            return {
+                type: ElementType.RESOURCE,
+                value: "",
+                data: {
+                    alt: res1[1],
+                    url: res1[2]
+                }
+            } as SlideElement
+        } else if (res2) {
+            return {
+                type: ElementType.RESOURCE,
+                value: "",
+                data: {
+                    url: res2[1]
+                }
+            } as SlideElement
+        } else {
+            return null
+        }
+    }
+}
+
 const TextParser : ElementParser = {
     parse: (line) => {
         // fallthrough case, return a text element
@@ -88,4 +118,4 @@ const TextParser : ElementParser = {
     }
 }
 
-export const ELEMENT_PARSERS = [HeaderParser, OLParser, ULParser, EmptyParser, CommentParser, TextParser]
+export const ELEMENT_PARSERS = [HeaderParser, OLParser, ULParser, EmptyParser, CommentParser, ResourceParser, TextParser]
