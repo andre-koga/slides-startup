@@ -47,6 +47,8 @@ ESCAPE_CHAR_MAP.set('e', '<strong>');
 ESCAPE_CHAR_MAP.set('f', '</strong>');
 ESCAPE_CHAR_MAP.set('g', '<em>');
 ESCAPE_CHAR_MAP.set('h', '</em>');
+ESCAPE_CHAR_MAP.set('i', '<code>');
+ESCAPE_CHAR_MAP.set('j', '</code>');
 const MATH_START = 'c';
 const MATH_END = 'd';
 

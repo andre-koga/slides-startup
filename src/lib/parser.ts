@@ -178,7 +178,7 @@ const addSpans = (slide : Slide) => {
 }
 
 const addSpansToElement = (element : SlideElement) => {
-    const BACKSLASH_CHARS = ['_', '$', '*', '**', '\\'];
+    const BACKSLASH_CHARS = ['_', '$', '*', '**', '`', '\\'];
 
     const SPANS = [
         {
@@ -200,6 +200,11 @@ const addSpansToElement = (element : SlideElement) => {
             identifier: '*',
             escStart: 'g',
             escEnd: 'h',
+        },
+        {
+            identifier: '`',
+            escStart: 'i',
+            escEnd: 'j',
         }
     ]
     
