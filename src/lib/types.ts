@@ -5,6 +5,7 @@ export type Slideshow = {
 
 export type Slide = {
     title: string
+    template: string
     contents: SlideElement[]
 }
 

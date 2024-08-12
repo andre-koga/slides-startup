@@ -3,7 +3,7 @@ import { ELEMENT_PARSERS } from "./elementParsers";
 import { ESC_CHAR } from "./constants"; 
 
 // match any lines in the form '---{SLIDEINFO}'
-const SLIDE_REGEX = /^---(.*)$/
+const SLIDE_REGEX = /^---([a-zA-Z0-9_.]*)\s(.*)$/
 
 // match lines in form 'key = value', where key and value are alphanumeric
 const METADATA_REGEX = /^([a-zA-Z0-9_.]+)\s*=\s*([a-zA-Z0-9_.]+)$/
@@ -23,13 +23,15 @@ export const processMarkup = (markup : string) => {
     // below code splits up the markdown into metadata lines and slide lines
     const metadataLines : string[] = [];
     const slideLines : string[][] = [];
+    const slideTemplates : string[] = [];
     const slideNames : string[] = [];
     let inMetadata = true;
     lines.forEach((line) => {
         const isNewSlide = SLIDE_REGEX.exec(line);
         if (isNewSlide) {
             inMetadata = false;
-            slideNames.push(isNewSlide[1]);
+            slideTemplates.push(isNewSlide[2]);
+            slideNames.push(isNewSlide[2]);
             slideLines.push([]);
         } else if (inMetadata) {
             metadataLines.push(line);
@@ -43,7 +45,7 @@ export const processMarkup = (markup : string) => {
 
     const slides = slideLines.map((slideLines, i) => {
         // step 2: parse slides
-        let slide = parseSlide(slideLines, slideNames[i]);
+        let slide = parseSlide(slideLines, slideNames[i], slideTemplates[i]);
 
         // step 3: deal with multi-line elements like lists and code blocks
         slide = postProcessSlide(slide, slideLines);
@@ -99,9 +101,10 @@ const parseMetadata = (metadataLines : string[]) => {
 /**
  * @param {string[]} slideLines: array of lines in a slide
  * @param {string} slideName: name of the slide
+ * @param {string} slideTemplate: name of the slide template
  * @returns {Slide}: map of metadata key-value pairs
  */
-const parseSlide = (slideLines : string[], slideName : string) => {
+const parseSlide = (slideLines : string[], slideName : string, slideTemplate : string) => {
     const elements : SlideElement[] = [];
     slideLines.forEach((line) => {
         ELEMENT_PARSERS.some((parser) => {
@@ -114,7 +117,8 @@ const parseSlide = (slideLines : string[], slideName : string) => {
     })
     return {
         title: slideName,
-        contents: elements
+        contents: elements,
+        template: slideTemplate
     } as Slide;
 }
 
