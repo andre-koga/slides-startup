@@ -52,7 +52,7 @@ const OLParser : ElementParser = {
 
 const EmptyParser : ElementParser = {
     parse: (line) => {
-        // fallthrough case, return a text element
+        // match empty lines
         const res = /^\s*$/.exec(line)
         if (!res) {
             return null
@@ -66,7 +66,7 @@ const EmptyParser : ElementParser = {
 
 const CommentParser : ElementParser = {
     parse: (line) => {
-        // fallthrough case, return a text element
+        // match comments starting with '//'
         const res = /^\/\/(.*)$/.exec(line)
         if (!res) {
             return null

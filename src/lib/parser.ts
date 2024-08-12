@@ -257,6 +257,11 @@ const addSpansToElement = (element : SlideElement) => {
         out += element.value[i];
     }
     element.value = out;
+    if (element.children) {
+        element.children = element.children.map((child) => {
+            return addSpansToElement(child);
+        })
+    }
 
     return element;
 }
