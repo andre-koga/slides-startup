@@ -50,6 +50,34 @@ const OLParser : ElementParser = {
     }
 }
 
+const EmptyParser : ElementParser = {
+    parse: (line) => {
+        // fallthrough case, return a text element
+        const res = /^\s*$/.exec(line)
+        if (!res) {
+            return null
+        }
+        return {
+            type: ElementType.EMPTY,
+            value: "",
+        } as SlideElement
+    }
+}
+
+const CommentParser : ElementParser = {
+    parse: (line) => {
+        // fallthrough case, return a text element
+        const res = /^\/\/(.*)$/.exec(line)
+        if (!res) {
+            return null
+        }
+        return {
+            type: ElementType.COMMENT,
+            value: res[1],
+        } as SlideElement
+    }
+}
+
 const TextParser : ElementParser = {
     parse: (line) => {
         // fallthrough case, return a text element
@@ -60,4 +88,4 @@ const TextParser : ElementParser = {
     }
 }
 
-export const ELEMENT_PARSERS = [HeaderParser, OLParser, ULParser, TextParser]
+export const ELEMENT_PARSERS = [HeaderParser, OLParser, ULParser, EmptyParser, CommentParser, TextParser]

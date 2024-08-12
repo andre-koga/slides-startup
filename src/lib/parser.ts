@@ -67,16 +67,16 @@ export const processMarkup = (markup : string) => {
  */
 const preprocessMarkup = (markup : string) => {
     // standardize line endings
-    markup = markup.replace(/\r\n/g, '\n');
-    markup = markup.replace(/\r/g, '\n');
+    markup = markup.replaceAll(/\r\n/g, '\n');
+    markup = markup.replaceAll(/\r/g, '\n');
 
     // replace special characters
-    markup = markup.replace(/&/g, '&amp;');
-    markup = markup.replace(/</g, '&lt;');
-    markup = markup.replace(/>/g, '&gt;');
+    markup = markup.replaceAll(/&/g, '&amp;');
+    markup = markup.replaceAll(/</g, '&lt;');
+    markup = markup.replaceAll(/>/g, '&gt;');
 
     // escape special characters
-    markup = markup.replace(ESC_CHAR, `${ESC_CHAR}${ESC_CHAR}`);
+    markup = markup.replaceAll(ESC_CHAR, `${ESC_CHAR}${ESC_CHAR}`);
 
     return markup;
 }

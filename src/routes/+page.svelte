@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { processMarkup } from "$lib/compiler";
+    import { processMarkup } from "$lib/parser";
     import { generateHTML } from "$lib/htmlGenerator";
 	import { type Slideshow } from "$lib/types";
 
