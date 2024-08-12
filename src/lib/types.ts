@@ -5,12 +5,14 @@ export type Slideshow = {
 
 export type Slide = {
     title: string
-    contents: Element[]
+    contents: SlideElement[]
 }
 
-export type Element = {
+export type SlideElement = {
     type: ElementType
     value: string
+    children?: SlideElement[]
+    data?: unknown
 }
 
 export enum ElementType {

@@ -1,4 +1,5 @@
-import type { Slide, Element } from "./types";
+import type { Slide, SlideElement } from "./types";
+import { ElementType } from "./types";
 
 export const generateHTML = (slide : Slide) => {
     return `
@@ -10,9 +11,9 @@ export const generateHTML = (slide : Slide) => {
     `
 }
 
-const elementToHtml = (element : Element) => {
-    if (element.type === 'header') {
-        return `<h1>${element.value}</h1>`
+const elementToHtml = (element : SlideElement) => {
+    if (element.type === ElementType.HEADER) {
+        return `<h${element.data}>${element.value}</h${element.data}>`
     } else {
         return `<p>${element.value}</p>`
     }
