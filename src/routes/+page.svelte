@@ -1,18 +1,18 @@
 <script lang="ts">
-	import { processMarkup } from '$lib/parser';
-	import { generateHTML } from '$lib/htmlGenerator';
-	import { type Slideshow } from '$lib/types';
+import { processMarkup } from '$lib/parser';
+import { generateHTML } from '$lib/htmlGenerator';
+import { type Slideshow } from '$lib/types';
 
-	let markup = `template=test.template\n---Slide 1\n# A great day\nHello there\n---Slide 2\nAnother great day`;
-	let slideshow: Slideshow = processMarkup(markup);
+let markup = `template=test.template\n---Slide 1\n# A great day\nHello there\n---Slide 2\nAnother great day`;
+let slideshow: Slideshow = processMarkup(markup);
 
-	const onInput = () => {
-		slideshow = processMarkup(markup);
-		console.log(slideshow);
-	};
+const onInput = () => {
+	slideshow = processMarkup(markup);
+	console.log(slideshow);
+};
 </script>
 
-<h1 class="bg-blue-500">Flux</h1>
+<h1 class="bg-blue-400 sm:bg-gray-500 lg:bg-red-400">Flux</h1>
 <textarea
 	bind:value={markup}
 	on:input={onInput}
