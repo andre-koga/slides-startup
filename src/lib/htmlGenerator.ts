@@ -7,36 +7,52 @@ import { math } from "mathlifier";
 export const generateHTML = (slide : Slide) => {
     const html = `
         <div class="slide">
-            ${slide.contents.map((element) => {
-                return elementToHtml(element);
+            ${slide.contents.map((element, i) => {
+                return elementToHtml(element, i === 0 ? null : slide.contents[i - 1]);
             }).join('\n')}
         </div>
     `
     return processEscapeChars(html);
 }
 
-const elementToHtml = (element : SlideElement) : string => {
+const elementToHtml = (element : SlideElement, previous : SlideElement | null) : string => {
+    let out = "";
+    
+    // add closing list tags
+    if (previous && previous.type === ElementType.LIST_ELEMENT) {
+        if (element.type !== ElementType.LIST_ELEMENT || element.data !== previous.data) {
+            out += `</${previous.data}>`
+        }
+    }
+
     if (element.type === ElementType.HEADER) {
-        return `<h${element.data}>${element.value}</h${element.data}>`
+        out = `<h${element.data}>${element.value}</h${element.data}>`
     } else if (element.type === ElementType.LIST_ELEMENT) {
-        return `<li>${element.value}</li>`
+        const listType : string = element.data as string
+        if (!previous || previous.data !== listType) {
+            out += `<${listType}>`
+        }
+        out += `<li>${element.value}</li>`
     } else if (element.type === ElementType.RESOURCE) {
         if (element.data && element.data.url && element.data.alt) {
-            return `<img src="${element.data.url}" alt=${element.data.alt} />`
+            out = `<img src="${element.data.url}" alt=${element.data.alt} />`
         } else if (element.data && element.data.url) {
-            return `<img src="${element.data.url}" />`
+            out = `<img src="${element.data.url}" />`
         } else {
-            return ''
+            out = ''
         }
     }
     else if (element.type === ElementType.COMMENT) {
-        return '';
+        out = '';
     } else if (element.type === ElementType.EMPTY) {
-        return '<br />'
+        out = '<br />'
     }
     else {
-        return `<p>${element.value}</p>`
+        out = `<p>${element.value}</p>`
     }
+
+    previous = element;
+    return out
 }
 
 const MATH_START = 'a';

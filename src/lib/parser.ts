@@ -169,7 +169,6 @@ const addSpansToElement = (element : SlideElement) => {
     for (const span of SPANS) {
         let lastSeen = null;
         for (let i = 0; i <= element.value.length - span.identifier.length; i++) {
-            console.log(blocked(i, BLOCKING_INDICES))
             if (blocked(i, BLOCKING_INDICES)) {
                 continue;
             }
