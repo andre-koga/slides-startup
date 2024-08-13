@@ -1,7 +1,7 @@
 import { ElementType, type SlideElement } from "./types";
 
 // todo: maybe switch to regex
-const detectStartEndElement = (lines : (string | SlideElement)[], elemType : ElementType, startText : string, endText : string, startIdx : number) => {
+const detectStartEndElement = (lines : (string | SlideElement)[], elemType : ElementType, startText : string, endText : string, startIdx : number, noDecorators : boolean) => {
     const startRegex = new RegExp(`^${startText}`);
     const endRegex = new RegExp(`${endText}$`);
 
@@ -56,7 +56,8 @@ const detectStartEndElement = (lines : (string | SlideElement)[], elemType : Ele
                 type: elemType,
                 value: multilineContent.join('\n'),
                 lineNumber: currLine,
-                length: i - multilineStart + 1
+                length: i - multilineStart + 1,
+                noDecorators: noDecorators
             } as SlideElement)
             multilineStart = null;
         }
@@ -71,14 +72,13 @@ type MultilineElementParser = {
 
 const MutilineCodeParser : MultilineElementParser = {
     parse: (slideLines, startIdx) => {
-        return detectStartEndElement(slideLines, ElementType.MULTILINE_CODE, '```', '```', startIdx);
+        return detectStartEndElement(slideLines, ElementType.MULTILINE_CODE, '```', '```', startIdx, false);
     }
 }
 
 const MutilineMathParser : MultilineElementParser = {
     parse: (slideLines, startIdx) => {
-        console.log(slideLines)
-        return detectStartEndElement(slideLines, ElementType.MULTILINE_MATH, '\\$\\$', '\\$\\$', startIdx);
+        return detectStartEndElement(slideLines, ElementType.MULTILINE_MATH, '\\$\\$', '\\$\\$', startIdx, true);
     }
 }
 

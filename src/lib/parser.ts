@@ -34,9 +34,9 @@ export const processMarkup = (markup : string) => {
         const part2 = parseSingleLineElements(part1, slideInfo[i][2]);
 
         // finally add decorators like italics and bold to the elements
-        // out = addDecorators(out);
+        const part3 = addDecorators(part2);
 
-        return generateSlide(part2, slideInfo[i]);
+        return generateSlide(part3, slideInfo[i]);
     });
 
 
@@ -143,8 +143,6 @@ const parseSingleLineElements = (slideLines : (string | SlideElement)[], lineNum
     return out;
 }
 
-
-
 const generateSlide = (elements : SlideElement[], slideInfo : [string, string, number]) : Slide => {
     const [name, template, lineNumber] = slideInfo;
     return {
@@ -155,27 +153,24 @@ const generateSlide = (elements : SlideElement[], slideInfo : [string, string, n
     } as Slide;
 }
 
-const addSpans = (slide : Slide) => {
-    slide.contents = slide.contents.map((element) => {
-        return addSpansToElement(element);
-    });
-    return slide;
-}
-
-const NON_SPAN_ELEMENTS = [ElementType.MULTILINE_CODE, ElementType.RESOURCE];
-
-type Span = {
+type Decorator = {
     identifier: string,
     escStart: string,
     escEnd: string,
     blocking?: boolean
 }
 
-const addSpansToElement = (element : SlideElement) => {
-    if (NON_SPAN_ELEMENTS.includes(element.type)) {
-        return element;
-    }
+const addDecorators = (slideLines : SlideElement[]) => {
+    return slideLines.map((element) => {
+        if (element.noDecorators) {
+            return element;
+        }
+        return addDecoratorsToElement(element);
+    })
+}
 
+
+const addDecoratorsToElement = (element : SlideElement) => {
     const BACKSLASH_CHARS = ['_', '$', '*', '**', '`', '\\'];
 
     const SPANS = [
@@ -216,7 +211,7 @@ const addSpansToElement = (element : SlideElement) => {
 
     // one pass for each type of span
     for (const span of SPANS) {
-        addSpanToElement(element, span, BLOCKING_INDICES);
+        addDecoratorToElement(element, span, BLOCKING_INDICES);
     }
 
     // finally, remove backslashes when they escape a special character
@@ -228,16 +223,11 @@ const addSpansToElement = (element : SlideElement) => {
         out += element.value[i];
     }
     element.value = out;
-    if (element.children) {
-        element.children = element.children.map((child) => {
-            return addSpansToElement(child);
-        })
-    }
 
     return element;
 }
 
-function addSpanToElement(element: SlideElement, span : Span, BLOCKING_INDICES: [number, number][]) {
+function addDecoratorToElement(element: SlideElement, span : Decorator, BLOCKING_INDICES: [number, number][]) {
     let lastSeen = null;
     for (let i = 0; i <= element.value.length - span.identifier.length; i++) {
         if (blocked(i, BLOCKING_INDICES)) {

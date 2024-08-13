@@ -16,6 +16,7 @@ export type SlideElement = {
     lineNumber: number
     length: number
     data?: unknown
+    noDecorators?: boolean
 }
 
 export enum ElementType {
