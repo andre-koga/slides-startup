@@ -12,12 +12,14 @@ import '@fontsource/inter';
 import { theme } from '$stores/themeStore.js';
 </script>
 
-<div class:bg-light={$theme == 'light'} class:bg-dark={$theme == 'dark'}>
+<div
+	class:bg-light={$theme == 'light'}
+	class:bg-dark={$theme == 'dark'}
+	class="bg-white font-text text-black dark:bg-black dark:text-white"
+>
 	<Header />
 
-	<main
-		class="relative z-0 min-h-screen bg-white font-text text-black dark:bg-black dark:text-white"
-	>
+	<main class="relative z-0 min-h-screen">
 		<slot />
 	</main>
 

@@ -4,6 +4,7 @@ import { Sun, Moon } from 'lucide-svelte';
 
 // Stores
 import { theme } from '$stores/themeStore.js';
+import Logo from '$ui/Logo.svelte';
 
 // Function to toggle the theme
 function toggleTheme() {
@@ -24,4 +25,5 @@ function toggleTheme() {
 		<Sun class="block h-5 w-5 dark:hidden" />
 		<Moon class="hidden h-5 w-5 dark:block" />
 	</button>
+	<Logo />
 </header>

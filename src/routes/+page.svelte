@@ -12,7 +12,6 @@ const onInput = () => {
 };
 </script>
 
-<h1 class="">Flux</h1>
 <textarea
 	bind:value={markup}
 	on:input={onInput}
