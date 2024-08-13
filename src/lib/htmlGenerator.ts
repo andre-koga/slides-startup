@@ -90,6 +90,8 @@ ESCAPE_CHAR_MAP.set('g', '<em>');
 ESCAPE_CHAR_MAP.set('h', '</em>');
 ESCAPE_CHAR_MAP.set('i', '<code>');
 ESCAPE_CHAR_MAP.set('j', '</code>');
+ESCAPE_CHAR_MAP.set('k', '<s>');
+ESCAPE_CHAR_MAP.set('l', '</s>');
 
 /**
  * Checks for the special escape character and replaces it with the appropriate HTML

@@ -223,6 +223,11 @@ const addSpansToElement = (element : SlideElement) => {
             identifier: '`',
             escStart: 'i',
             escEnd: 'j',
+        },
+        {
+            identifier: '~',
+            escStart: 'k',
+            escEnd: 'l',
         }
     ]
 
