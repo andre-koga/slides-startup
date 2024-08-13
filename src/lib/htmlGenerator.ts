@@ -18,17 +18,6 @@ export const generateHTML = (slide : Slide) => {
 const elementToHtml = (element : SlideElement) : string => {
     if (element.type === ElementType.HEADER) {
         return `<h${element.data}>${element.value}</h${element.data}>`
-    } else if (element.type === ElementType.LIST) {
-        if (!element.children) {
-            return '';
-        }
-        return `
-            <${element.data}>
-                ${element.children.map((child) => {
-                    return elementToHtml(child) as string;
-                }).join('\n')}
-            </${element.data}>
-        `
     } else if (element.type === ElementType.LIST_ELEMENT) {
         return `<li>${element.value}</li>`
     } else if (element.type === ElementType.RESOURCE) {
@@ -48,17 +37,17 @@ const elementToHtml = (element : SlideElement) : string => {
     }
 }
 
+const MATH_START = 'a';
+const MATH_END = 'b';
 const ESCAPE_CHAR_MAP = new Map<string, string>();
-ESCAPE_CHAR_MAP.set('a', '<u>');
-ESCAPE_CHAR_MAP.set('b', '</u>');
+ESCAPE_CHAR_MAP.set('c', '<u>');
+ESCAPE_CHAR_MAP.set('d', '</u>');
 ESCAPE_CHAR_MAP.set('e', '<strong>');
 ESCAPE_CHAR_MAP.set('f', '</strong>');
 ESCAPE_CHAR_MAP.set('g', '<em>');
 ESCAPE_CHAR_MAP.set('h', '</em>');
 ESCAPE_CHAR_MAP.set('i', '<code>');
 ESCAPE_CHAR_MAP.set('j', '</code>');
-const MATH_START = 'c';
-const MATH_END = 'd';
 
 const processEscapeChars = (html : string) => {
     let out = '';

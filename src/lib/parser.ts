@@ -1,4 +1,4 @@
-import { type Slideshow, type Slide, type SlideElement, ElementType } from "./types";
+import { type Slideshow, type Slide, type SlideElement } from "./types";
 import { ELEMENT_PARSERS } from "./elementParsers";
 import { ESC_CHAR } from "./constants"; 
 
@@ -48,7 +48,7 @@ export const processMarkup = (markup : string) => {
         let slide = parseSlide(slideLines, slideNames[i], slideTemplates[i]);
 
         // step 3: deal with multi-line elements like lists and code blocks
-        slide = postProcessSlide(slide, slideLines);
+        // TODO
 
         // step 4: deal with intra-line elements like bold and italics
         slide = addSpans(slide);
@@ -122,56 +122,6 @@ const parseSlide = (slideLines : string[], slideName : string, slideTemplate : s
     } as Slide;
 }
 
-/**
- * @param {Slide} slide: the slide to post-process
- * @param {string[]} slideLines: the lines in the slide (in case original formatting is needed)
- * @returns {Slide}: the post-processed slide
- */
-const postProcessSlide = (slide : Slide, slideLines : string[]) => {
-    const out : SlideElement[] = [];
-
-    // handle lists
-    let currList : SlideElement | null = null;
-    let currListType : string | null = null;
-    slide.contents.forEach((element) => {
-        const type = element.data;
-
-        // if we've reached the end of this list, push it to the output
-        if (currList && type !== currListType) {
-            out.push(currList);
-            currList = null;
-        }
-
-        if (element.type === ElementType.LIST_ELEMENT && typeof type === 'string') {
-            if (currList && currList.children && type === currListType) {
-                // if we're already in a list, add this element to it
-                currList.children.push(element);
-            } else {
-                // otherwise, start a new list
-                currList = {
-                    type: ElementType.LIST,
-                    value: '',
-                    children: [element],
-                    data: type
-                } as SlideElement
-                currListType = type;
-            }
-        } else {
-            // by default keep the element as is
-            out.push(element);
-        }
-    })
-
-    if (currList) {
-        out.push(currList);
-    }
-
-    return {
-        title: slide.title,
-        contents: out
-    } as Slide;
-}
-
 const addSpans = (slide : Slide) => {
     return {
         title: slide.title,
@@ -187,13 +137,14 @@ const addSpansToElement = (element : SlideElement) => {
     const SPANS = [
         {
             identifier: '$',
-            escStart: 'c',
-            escEnd: 'd',
+            escStart: 'a',
+            escEnd: 'b',
+            blocking: true
         },
         {
             identifier: '_',
-            escStart: 'a',
-            escEnd: 'b',
+            escStart: 'c',
+            escEnd: 'd',
         },
         {
             identifier: '**',
@@ -211,22 +162,15 @@ const addSpansToElement = (element : SlideElement) => {
             escEnd: 'j',
         }
     ]
-    
-    const BLOCKING_SPAN_START = ['¨c'];
-    const BLOCKING_SPAN_END = ['¨d'];
+
+    const BLOCKING_INDICES : [number, number][] = [];
 
     // one pass for each type of span
     for (const span of SPANS) {
         let lastSeen = null;
-        let blocking = false;
         for (let i = 0; i <= element.value.length - span.identifier.length; i++) {
-            if (BLOCKING_SPAN_START.includes(element.value.slice(i, i + 2))) {
-                blocking = true;
-            }
-            if (BLOCKING_SPAN_END.includes(element.value.slice(i, i + 2))) {
-                blocking = false;
-            }
-            if (blocking) {
+            console.log(blocked(i, BLOCKING_INDICES))
+            if (blocked(i, BLOCKING_INDICES)) {
                 continue;
             }
             const val = element.value.slice(i, i + span.identifier.length);
@@ -240,6 +184,9 @@ const addSpansToElement = (element : SlideElement) => {
                     lastSeen = i;
                 }
                 else {
+                    if (span.blocking) {
+                        BLOCKING_INDICES.push([lastSeen, i + span.identifier.length])
+                    }
                     // replace start and end of span with escape characters
                     const start = element.value.slice(0, lastSeen);
                     const middle = element.value.slice(lastSeen + span.identifier.length, i);
@@ -268,4 +215,13 @@ const addSpansToElement = (element : SlideElement) => {
     }
 
     return element;
+}
+
+const blocked = (index : number, blockedIndices : [number, number][]) => {
+    for (const pair of blockedIndices) {
+        if (pair[0] <= index && index < pair[1]) {
+            return true;
+        }
+    }
+    return false;
 }

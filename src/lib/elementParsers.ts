@@ -84,7 +84,7 @@ const ResourceParser : ElementParser = {
         const res1 = /^!\[(.*)\]\((.*)\).*$/.exec(line)
 
         // match resource in the form of !(url)
-        const res2 = /^!\[(.*)\]\((.*)\).*$/.exec(line)
+        const res2 = /^!\((.*)\).*$/.exec(line)
         if (res1) {
             return {
                 type: ElementType.RESOURCE,

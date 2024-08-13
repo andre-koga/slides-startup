@@ -18,7 +18,6 @@ export type SlideElement = {
 
 export enum ElementType {
     HEADER = 'header',
-    LIST = 'list',
     LIST_ELEMENT = 'listElement',
     COMMENT = 'comment',
     EMPTY = 'empty',
