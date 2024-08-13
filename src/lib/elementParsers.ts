@@ -2,11 +2,11 @@ import type { SlideElement } from "./types"
 import { ElementType, FlagType } from "./types"
 
 type ElementParser = {
-    parse: (line: string) => SlideElement | null
+    parse: (line: string, idx: number) => SlideElement | null
 }
 
 const HeaderParser : ElementParser = {
-    parse: (line) => {
+    parse: (line, idx) => {
         // match 1-6 '#' characters at the beginning of the line
         const res = /^(#{1,6})(.*$)/.exec(line)
         if (!res) {
@@ -15,13 +15,14 @@ const HeaderParser : ElementParser = {
         return {
             type: ElementType.HEADER,
             value: res[2],
-            data: res[1].length
+            data: res[1].length,
+            idx: idx
         } as SlideElement
     }
 }
 
 const ULParser : ElementParser = {
-    parse: (line) => {
+    parse: (line, idx) => {
         // match a line starting with a '-' or * character, then a space (optional starting whitespace)
         const res = /^\s?[-*]\s{1}(.*)$/.exec(line)
         if (!res) {
@@ -30,13 +31,14 @@ const ULParser : ElementParser = {
         return {
             type: ElementType.LIST_ELEMENT,
             value: res[1],
-            data: 'ul'
+            data: 'ul',
+            idx: idx
         } as SlideElement
     }
 }
 
 const OLParser : ElementParser = {
-    parse: (line) => {
+    parse: (line, idx) => {
         // match a line starting with a 'NUMBER. ' sequence (optional whitespace)
         const res = /^\s?[0-9]+\.\s{1}(.*)$/.exec(line)
         if (!res) {
@@ -45,13 +47,14 @@ const OLParser : ElementParser = {
         return {
             type: ElementType.LIST_ELEMENT,
             value: res[1],
-            data: 'ol'
+            data: 'ol',
+            idx: idx
         } as SlideElement
     }
 }
 
 const EmptyParser : ElementParser = {
-    parse: (line) => {
+    parse: (line, idx) => {
         // match empty lines
         const res = /^\s*$/.exec(line)
         if (!res) {
@@ -60,12 +63,13 @@ const EmptyParser : ElementParser = {
         return {
             type: ElementType.EMPTY,
             value: "",
+            idx: idx
         } as SlideElement
     }
 }
 
 const CommentParser : ElementParser = {
-    parse: (line) => {
+    parse: (line, idx) => {
         // match comments starting with '//'
         const res = /^\/\/(.*)$/.exec(line)
         if (!res) {
@@ -74,12 +78,13 @@ const CommentParser : ElementParser = {
         return {
             type: ElementType.COMMENT,
             value: res[1],
+            idx: idx
         } as SlideElement
     }
 }
 
 const ResourceParser : ElementParser = {
-    parse: (line) => {
+    parse: (line, idx) => {
         // match resource in the form of ![alt text](url)
         const res1 = /^!\[(.*)\]\((.*)\).*$/.exec(line)
 
@@ -92,7 +97,8 @@ const ResourceParser : ElementParser = {
                 data: {
                     alt: res1[1],
                     url: res1[2]
-                }
+                },
+                idx: idx
             } as SlideElement
         } else if (res2) {
             return {
@@ -100,7 +106,8 @@ const ResourceParser : ElementParser = {
                 value: "",
                 data: {
                     url: res2[1]
-                }
+                },
+                idx: idx
             } as SlideElement
         } else {
             return null
@@ -109,7 +116,7 @@ const ResourceParser : ElementParser = {
 }
 
 const TextParser : ElementParser = {
-    parse: (line) => {
+    parse: (line, idx) => {
         const multilineCodeStart = /^```.*$/.test(line);
         const multilineCodeEnd = /^.*```$/.test(line);
         const flags = [];
@@ -124,7 +131,8 @@ const TextParser : ElementParser = {
         return {
             type: ElementType.TEXT,
             value: line,
-            flags: flags
+            flags: flags,
+            idx: idx
         } as SlideElement
     }
 }

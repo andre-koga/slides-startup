@@ -7,11 +7,13 @@ export type Slide = {
     title: string
     template: string
     contents: SlideElement[]
+    idx: number
 }
 
 export type SlideElement = {
     type: ElementType
     value: string
+    idx: number
     children?: SlideElement[]
     data?: unknown
     flags?: FlagType[]
