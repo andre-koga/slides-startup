@@ -29,8 +29,10 @@ const elementToHtml = (element : SlideElement) : string => {
             return ''
         }
     }
-    else if (element.type === ElementType.COMMENT || element.type == ElementType.EMPTY) {
+    else if (element.type === ElementType.COMMENT) {
         return '';
+    } else if (element.type === ElementType.EMPTY) {
+        return '<br />'
     }
     else {
         return `<p>${element.value}</p>`
