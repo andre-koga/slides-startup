@@ -1,5 +1,5 @@
 import type { SlideElement } from "./types"
-import { ElementType } from "./types"
+import { ElementType, FlagType } from "./types"
 
 type ElementParser = {
     parse: (line: string) => SlideElement | null
@@ -110,10 +110,21 @@ const ResourceParser : ElementParser = {
 
 const TextParser : ElementParser = {
     parse: (line) => {
+        const multilineCodeStart = /^```.*$/.test(line);
+        const multilineCodeEnd = /^.*```$/.test(line);
+        const flags = [];
+        if (multilineCodeStart) {
+            flags.push(FlagType.MULTILINE_CODE_START);
+        }
+        if (multilineCodeEnd) {
+            flags.push(FlagType.MULTILINE_CODE_END);
+        }
+        
         // fallthrough case, return a text element
         return {
             type: ElementType.TEXT,
-            value: line
+            value: line,
+            flags: flags
         } as SlideElement
     }
 }
