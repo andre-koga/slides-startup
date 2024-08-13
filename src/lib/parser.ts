@@ -183,6 +183,13 @@ const addSpans = (slide : Slide) => {
 
 const NON_SPAN_ELEMENTS = [ElementType.MULTILINE_CODE, ElementType.RESOURCE];
 
+type Span = {
+    identifier: string,
+    escStart: string,
+    escEnd: string,
+    blocking?: boolean
+}
+
 const addSpansToElement = (element : SlideElement) => {
     if (NON_SPAN_ELEMENTS.includes(element.type)) {
         return element;
@@ -223,35 +230,7 @@ const addSpansToElement = (element : SlideElement) => {
 
     // one pass for each type of span
     for (const span of SPANS) {
-        let lastSeen = null;
-        for (let i = 0; i <= element.value.length - span.identifier.length; i++) {
-            if (blocked(i, BLOCKING_INDICES)) {
-                continue;
-            }
-            const val = element.value.slice(i, i + span.identifier.length);
-            if (element.value[i] === '\\') {
-                i++;
-            }
-            else if (val === span.identifier) {
-                if (lastSeen === null) {
-                    lastSeen = i;
-                } else if (i === lastSeen + 1) { // empty span (maybe switch to lastSeen + identifier.length?)
-                    lastSeen = i;
-                }
-                else {
-                    if (span.blocking) {
-                        BLOCKING_INDICES.push([lastSeen, i + span.identifier.length])
-                    }
-                    // replace start and end of span with escape characters
-                    const start = element.value.slice(0, lastSeen);
-                    const middle = element.value.slice(lastSeen + span.identifier.length, i);
-                    const end = element.value.slice(i + span.identifier.length);
-                    element.value = `${start}${ESC_CHAR}${span.escStart}${middle}${ESC_CHAR}${span.escEnd}${end}`;
-                    lastSeen = null;
-                }
-                i += span.identifier.length - 1;
-            }
-        }
+        addSpanToElement(element, span, BLOCKING_INDICES);
     }
 
     // finally, remove backslashes when they escape a special character
@@ -270,6 +249,38 @@ const addSpansToElement = (element : SlideElement) => {
     }
 
     return element;
+}
+
+function addSpanToElement(element: SlideElement, span : Span, BLOCKING_INDICES: [number, number][]) {
+    let lastSeen = null;
+    for (let i = 0; i <= element.value.length - span.identifier.length; i++) {
+        if (blocked(i, BLOCKING_INDICES)) {
+            continue;
+        }
+        const val = element.value.slice(i, i + span.identifier.length);
+        if (element.value[i] === '\\') {
+            i++;
+        }
+        else if (val === span.identifier) {
+            if (lastSeen === null) {
+                lastSeen = i;
+            } else if (i === lastSeen + 1) { // empty span (maybe switch to lastSeen + identifier.length?)
+                lastSeen = i;
+            }
+            else {
+                if (span.blocking) {
+                    BLOCKING_INDICES.push([lastSeen, i + span.identifier.length]);
+                }
+                // replace start and end of span with escape characters
+                const start = element.value.slice(0, lastSeen);
+                const middle = element.value.slice(lastSeen + span.identifier.length, i);
+                const end = element.value.slice(i + span.identifier.length);
+                element.value = `${start}${ESC_CHAR}${span.escStart}${middle}${ESC_CHAR}${span.escEnd}${end}`;
+                lastSeen = null;
+            }
+            i += span.identifier.length - 1;
+        }
+    }
 }
 
 const blocked = (index : number, blockedIndices : [number, number][]) => {
