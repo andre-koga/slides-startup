@@ -12,7 +12,7 @@ const onInput = () => {
 };
 </script>
 
-<h1 class="bg-blue-400 sm:bg-gray-500 lg:bg-red-400">Flux</h1>
+<h1 class="">Flux</h1>
 <textarea
 	bind:value={markup}
 	on:input={onInput}
