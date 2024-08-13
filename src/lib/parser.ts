@@ -1,4 +1,5 @@
-import { type Slideshow, type Slide, type SlideElement, ElementType } from "./types";
+import type { Slideshow, Slide, SlideElement, Pair, Decorator } from "./types";
+import { DecoratorType, SpanType } from "./types";
 import { ELEMENT_PARSERS } from "./elementParsers";
 import { ESC_CHAR } from "./constants"; 
 
@@ -25,14 +26,16 @@ export const processMarkup = (markup : string) => {
     const slideLines : string[][] = [];
     const slideTemplates : string[] = [];
     const slideNames : string[] = [];
+    const slideIndices : number[] = [];
     let inMetadata = true;
-    lines.forEach((line) => {
+    lines.forEach((line, i) => {
         const isNewSlide = SLIDE_REGEX.exec(line);
         if (isNewSlide) {
             inMetadata = false;
             slideTemplates.push(isNewSlide[2]);
             slideNames.push(isNewSlide[2]);
             slideLines.push([]);
+            slideIndices.push(i);
         } else if (inMetadata) {
             metadataLines.push(line);
         } else {
@@ -45,12 +48,9 @@ export const processMarkup = (markup : string) => {
 
     const slides = slideLines.map((slideLines, i) => {
         // step 2: parse slides
-        let slide = parseSlide(slideLines, slideNames[i], slideTemplates[i]);
+        let slide = parseSlide(slideLines, slideNames[i], slideTemplates[i], slideIndices[i]);
 
-        // step 3: deal with multi-line elements like lists and code blocks
-        slide = postProcessSlide(slide, slideLines);
-
-        // step 4: deal with intra-line elements like bold and italics
+        // step 3: deal with intra-line elements like bold and italics
         slide = addSpans(slide);
 
         return slide;
@@ -102,13 +102,14 @@ const parseMetadata = (metadataLines : string[]) => {
  * @param {string[]} slideLines: array of lines in a slide
  * @param {string} slideName: name of the slide
  * @param {string} slideTemplate: name of the slide template
+ * @param {number} slideIndex: index of the starting line of the slide
  * @returns {Slide}: map of metadata key-value pairs
  */
-const parseSlide = (slideLines : string[], slideName : string, slideTemplate : string) => {
+const parseSlide = (slideLines : string[], slideName : string, slideTemplate : string, slideIndex : number) => {
     const elements : SlideElement[] = [];
-    slideLines.forEach((line) => {
+    slideLines.forEach((line, i) => {
         ELEMENT_PARSERS.some((parser) => {
-            const elem = parser.parse(line);
+            const elem = parser.parse(line, slideIndex + i + 1);
             if (elem) {
                 elements.push(elem);
                 return true;
@@ -118,57 +119,8 @@ const parseSlide = (slideLines : string[], slideName : string, slideTemplate : s
     return {
         title: slideName,
         contents: elements,
-        template: slideTemplate
-    } as Slide;
-}
-
-/**
- * @param {Slide} slide: the slide to post-process
- * @param {string[]} slideLines: the lines in the slide (in case original formatting is needed)
- * @returns {Slide}: the post-processed slide
- */
-const postProcessSlide = (slide : Slide, slideLines : string[]) => {
-    const out : SlideElement[] = [];
-
-    // handle lists
-    let currList : SlideElement | null = null;
-    let currListType : string | null = null;
-    slide.contents.forEach((element) => {
-        const type = element.data;
-
-        // if we've reached the end of this list, push it to the output
-        if (currList && type !== currListType) {
-            out.push(currList);
-            currList = null;
-        }
-
-        if (element.type === ElementType.LIST_ELEMENT && typeof type === 'string') {
-            if (currList && currList.children && type === currListType) {
-                // if we're already in a list, add this element to it
-                currList.children.push(element);
-            } else {
-                // otherwise, start a new list
-                currList = {
-                    type: ElementType.LIST,
-                    value: '',
-                    children: [element],
-                    data: type
-                } as SlideElement
-                currListType = type;
-            }
-        } else {
-            // by default keep the element as is
-            out.push(element);
-        }
-    })
-
-    if (currList) {
-        out.push(currList);
-    }
-
-    return {
-        title: slide.title,
-        contents: out
+        template: slideTemplate,
+        index: slideIndex
     } as Slide;
 }
 
@@ -182,90 +134,88 @@ const addSpans = (slide : Slide) => {
 }
 
 const addSpansToElement = (element : SlideElement) => {
-    const BACKSLASH_CHARS = ['_', '$', '*', '**', '`', '\\'];
-
-    const SPANS = [
+    const DECORATORS = [
         {
             identifier: '$',
-            escStart: 'c',
-            escEnd: 'd',
+            type: DecoratorType.MATH,
+            blocking: true
         },
         {
             identifier: '_',
-            escStart: 'a',
-            escEnd: 'b',
+            type: DecoratorType.ITALICS,
         },
         {
             identifier: '**',
-            escStart: 'e',
-            escEnd: 'f',
+            type: DecoratorType.BOLD,
         },
         {
             identifier: '*',
-            escStart: 'g',
-            escEnd: 'h',
+            type: DecoratorType.ITALICS,
         },
         {
             identifier: '`',
-            escStart: 'i',
-            escEnd: 'j',
+            type: DecoratorType.CODE,
         }
     ]
     
-    const BLOCKING_SPAN_START = ['¨c'];
-    const BLOCKING_SPAN_END = ['¨d'];
+    const BLOCKING_REGIONS : Pair[] = []
 
     // one pass for each type of span
-    for (const span of SPANS) {
-        let lastSeen = null;
-        let blocking = false;
-        for (let i = 0; i <= element.value.length - span.identifier.length; i++) {
-            if (BLOCKING_SPAN_START.includes(element.value.slice(i, i + 2))) {
-                blocking = true;
-            }
-            if (BLOCKING_SPAN_END.includes(element.value.slice(i, i + 2))) {
-                blocking = false;
-            }
-            if (blocking) {
+    for (const dec of DECORATORS) {
+        let currDecorator : Decorator | null = null;
+        for (const span of element.spans) {
+            if (span.type !== SpanType.CONTENT) {
                 continue;
             }
-            const val = element.value.slice(i, i + span.identifier.length);
-            if (element.value[i] === '\\') {
-                i++;
-            }
-            else if (val === span.identifier) {
-                if (lastSeen === null) {
-                    lastSeen = i;
-                } else if (i === lastSeen + 1) { // empty span (maybe switch to lastSeen + identifier.length?)
-                    lastSeen = i;
+            for (let i = span.start; i < span.end - dec.identifier.length; i++) {
+                if (element.source[i] === "\\") {
+                    console.log("SKIP")
+                    i += 1;    
                 }
-                else {
-                    // replace start and end of span with escape characters
-                    const start = element.value.slice(0, lastSeen);
-                    const middle = element.value.slice(lastSeen + span.identifier.length, i);
-                    const end = element.value.slice(i + span.identifier.length);
-                    element.value = `${start}${ESC_CHAR}${span.escStart}${middle}${ESC_CHAR}${span.escEnd}${end}`;
-                    lastSeen = null;
+                if (isBlocked(i, BLOCKING_REGIONS)) {
+                    continue;
                 }
-                i += span.identifier.length - 1;
-            }
-        }
-    }
+                const curr = element.source.slice(i, i + dec.identifier.length);
+                if (curr !== dec.identifier) {
+                    continue;
+                }
 
-    // finally, remove backslashes when they escape a special character
-    let out = '';
-    for (let i = 0; i < element.value.length; i++) {
-        if (element.value[i] === '\\' && i + 1 < element.value.length && BACKSLASH_CHARS.includes(element.value[i + 1])) {
-            i++;
+                // at this point, we are at an unblocked region and have found a potential decorator
+                if (currDecorator === null) { // new opening
+                    currDecorator = {
+                        type: dec.type,
+                        start: i,
+                        end: -1
+                    } as Decorator
+                } else { // we've found a decorator pair
+                    currDecorator.end = i + dec.identifier.length;
+                    if (dec.blocking) {
+                        BLOCKING_REGIONS.push(
+                            {
+                                start: currDecorator.start,
+                                end: currDecorator.end
+                            } as Pair
+                        )
+                    } else {
+                        BLOCKING_REGIONS.push( { start: currDecorator.start, end: currDecorator.start + dec.identifier.length } as Pair )
+                        BLOCKING_REGIONS.push( { start: currDecorator.end, end: currDecorator.end + dec.identifier.length } as Pair )
+                    }
+                    element.decorators.push(currDecorator);
+                    currDecorator = null;
+                }
+                i += dec.identifier.length;
+            }
         }
-        out += element.value[i];
-    }
-    element.value = out;
-    if (element.children) {
-        element.children = element.children.map((child) => {
-            return addSpansToElement(child);
-        })
     }
 
     return element;
+}
+
+const isBlocked = (index : number, blockingRegions : Pair[]) => {
+    for (const region of blockingRegions) {
+        if (index >= region.start && index < region.end) {
+            return true;
+        }
+    }
+    return false;
 }

@@ -1,25 +1,40 @@
-import type { SlideElement } from "./types"
-import { ElementType } from "./types"
+import type { SlideElement, Span } from "./types"
+import { ElementType, SpanType } from "./types"
 
 type ElementParser = {
-    parse: (line: string) => SlideElement | null
+    parse: (line: string, lineNumber: number) => SlideElement | null
 }
 
 const HeaderParser : ElementParser = {
-    parse: (line) => {
+    parse: (line, lineNumber) => {
         // match 1-6 '#' characters at the beginning of the line
-        const res = /^(#{1,6})(.*$)/.exec(line)
+        const res = /^(#{1,6})(.*)$/.exec(line)
         if (!res) {
             return null
         }
         return {
             type: ElementType.HEADER,
-            value: res[2],
+            source: line,
+            sourceLine: lineNumber,
+            spans: [
+                {
+                    type: SpanType.INDICATOR,
+                    start: 0,
+                    end: res[1].length
+                } as Span,
+                {
+                    type: SpanType.CONTENT,
+                    start: res[1].length,
+                    end: line.length
+                } as Span,
+            ],
+            decorators: [],
             data: res[1].length
         } as SlideElement
     }
 }
 
+/*
 const ULParser : ElementParser = {
     parse: (line) => {
         // match a line starting with a '-' or * character, then a space (optional starting whitespace)
@@ -107,15 +122,24 @@ const ResourceParser : ElementParser = {
         }
     }
 }
+*/
 
 const TextParser : ElementParser = {
-    parse: (line) => {
-        // fallthrough case, return a text element
+    parse: (line, lineNumber) => {
+        // fallthrough case, return a basic slide element where the entire line is content
         return {
             type: ElementType.TEXT,
-            value: line
+            source: line,
+            sourceLine: lineNumber,
+            spans: [{
+                type: SpanType.CONTENT,
+                start: 0,
+                end: line.length
+            } as Span],
+            decorators: [],
         } as SlideElement
     }
 }
 
-export const ELEMENT_PARSERS = [HeaderParser, OLParser, ULParser, EmptyParser, CommentParser, ResourceParser, TextParser]
+// export const ELEMENT_PARSERS = [HeaderParser, OLParser, ULParser, EmptyParser, CommentParser, ResourceParser, TextParser]
+export const ELEMENT_PARSERS = [HeaderParser, TextParser]

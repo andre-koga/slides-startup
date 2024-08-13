@@ -1,5 +1,5 @@
 import type { Slide, SlideElement } from "./types";
-import { ElementType } from "./types";
+import { ElementType, SpanType } from "./types";
 import { ESC_CHAR } from "./constants";
 
 import { math } from "mathlifier";
@@ -12,76 +12,26 @@ export const generateHTML = (slide : Slide) => {
             }).join('\n')}
         </div>
     `
-    return processEscapeChars(html);
+    return html
 }
 
 const elementToHtml = (element : SlideElement) : string => {
     if (element.type === ElementType.HEADER) {
-        return `<h${element.data}>${element.value}</h${element.data}>`
-    } else if (element.type === ElementType.LIST) {
-        if (!element.children) {
-            return '';
+        let content = ""
+        for (const span of element.spans) {
+            if (span.type === SpanType.CONTENT) {
+                content += element.source.slice(span.start, span.end);
+            }
         }
-        return `
-            <${element.data}>
-                ${element.children.map((child) => {
-                    return elementToHtml(child) as string;
-                }).join('\n')}
-            </${element.data}>
-        `
-    } else if (element.type === ElementType.LIST_ELEMENT) {
-        return `<li>${element.value}</li>`
-    } else if (element.type === ElementType.RESOURCE) {
-        if (element.data && element.data.url && element.data.alt) {
-            return `<img src="${element.data.url}" alt=${element.data.alt} />`
-        } else if (element.data && element.data.url) {
-            return `<img src="${element.data.url}" />`
-        } else {
-            return ''
-        }
-    }
-    else if (element.type === ElementType.COMMENT || element.type == ElementType.EMPTY) {
-        return '';
+        return `<h${element.data}>${content}</h${element.data}>`
     }
     else {
-        return `<p>${element.value}</p>`
-    }
-}
-
-const ESCAPE_CHAR_MAP = new Map<string, string>();
-ESCAPE_CHAR_MAP.set('a', '<u>');
-ESCAPE_CHAR_MAP.set('b', '</u>');
-ESCAPE_CHAR_MAP.set('e', '<strong>');
-ESCAPE_CHAR_MAP.set('f', '</strong>');
-ESCAPE_CHAR_MAP.set('g', '<em>');
-ESCAPE_CHAR_MAP.set('h', '</em>');
-ESCAPE_CHAR_MAP.set('i', '<code>');
-ESCAPE_CHAR_MAP.set('j', '</code>');
-const MATH_START = 'c';
-const MATH_END = 'd';
-
-const processEscapeChars = (html : string) => {
-    let out = '';
-
-    let mathStartIdx = null;
-    for (let i = 0; i < html.length; i++) {
-        const char = html[i];
-        if (char === ESC_CHAR) {
-            i++;
-            if (html[i] === MATH_START) {
-                mathStartIdx = out.length;
-            } else if (html[i] === MATH_END && mathStartIdx !== null) {
-                const mathString = out.slice(mathStartIdx, out.length);
-                out = out.slice(0, mathStartIdx);
-                out += math(mathString, { output: 'mathml'});
-                mathStartIdx = null;
-            } 
-            else {
-                out += ESCAPE_CHAR_MAP.get(html[i]) || html[i];
+        let content = ""
+        for (const span of element.spans) {
+            if (span.type === SpanType.CONTENT) {
+                content += element.source.slice(span.start, span.end);
             }
-        } else {
-            out += char;
         }
+        return `<p>${content}</p>`
     }
-    return out;
 }
