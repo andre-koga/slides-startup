@@ -30,6 +30,9 @@ const elementToHtml = (element : SlideElement, previous : SlideElement | null) :
     if (element.type === ElementType.HEADER) {
         out = `<h${element.data}>${element.value}</h${element.data}>\n`
     }
+    if (element.type === ElementType.QUOTE) {
+        out = `<blockquote>${element.value}</blockquote>\n`
+    }
     else if (element.type === ElementType.LIST_ELEMENT) {
         const listType : string = element.data as string
         if (!previous || previous.data !== listType) {

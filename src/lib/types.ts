@@ -23,6 +23,7 @@ export enum ElementType {
     MULTILINE_CODE = 'multilineCode',
     MULTILINE_MATH = 'multilineMath',
     HEADER = 'header',
+    QUOTE = 'quote',
     LIST_ELEMENT = 'listElement',
     COMMENT = 'comment',
     EMPTY = 'empty',

@@ -5,9 +5,6 @@ const detectStartEndElement = (lines : (string | SlideElement)[], elemType : Ele
     const startRegex = new RegExp(`^${startText}`);
     const endRegex = new RegExp(`${endText}$`);
 
-    console.log(startRegex, endRegex)
-    console.log(startRegex.test("$$scsdcs"), endRegex.test("sdcsdc$$"))
-
     const out : (string | SlideElement)[] = [];
     let currLine = startIdx;
 

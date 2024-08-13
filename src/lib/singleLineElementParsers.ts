@@ -22,6 +22,22 @@ const HeaderParser : ElementParser = {
     }
 }
 
+const QuoteParser : ElementParser = {
+    parse: (line, lineNumber) => {
+        // match a line starting with a '>' character, then a space (optional starting whitespace)
+        const res = /^>\s{1}(.*)$/.exec(line)
+        if (!res) {
+            return null
+        }
+        return {
+            type: ElementType.QUOTE,
+            value: res[1],
+            lineNumber: lineNumber,
+            length: 1
+        } as SlideElement
+    }
+}
+
 const ULParser : ElementParser = {
     parse: (line, lineNumber) => {
         // match a line starting with a '-' or * character, then a space (optional starting whitespace)
@@ -134,4 +150,4 @@ const TextParser : ElementParser = {
     }
 }
 
-export const SINGLELINE_ELEMENT_PARSERS = [HeaderParser, OLParser, ULParser, EmptyParser, CommentParser, ResourceParser, TextParser]
+export const SINGLELINE_ELEMENT_PARSERS = [HeaderParser, QuoteParser, OLParser, ULParser, EmptyParser, CommentParser, ResourceParser, TextParser]
