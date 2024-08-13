@@ -1,12 +1,12 @@
 import type { SlideElement } from "./types"
-import { ElementType, FlagType } from "./types"
+import { ElementType } from "./types"
 
 type ElementParser = {
-    parse: (line: string, idx: number) => SlideElement | null
+    parse: (line: string, lineNumber: number) => SlideElement | null
 }
 
 const HeaderParser : ElementParser = {
-    parse: (line, idx) => {
+    parse: (line, lineNumber) => {
         // match 1-6 '#' characters at the beginning of the line
         const res = /^(#{1,6})(.*$)/.exec(line)
         if (!res) {
@@ -16,13 +16,14 @@ const HeaderParser : ElementParser = {
             type: ElementType.HEADER,
             value: res[2],
             data: res[1].length,
-            idx: idx
-        } as SlideElement
+            lineNumber: lineNumber,
+            length: 1
+        }  as SlideElement
     }
 }
 
 const ULParser : ElementParser = {
-    parse: (line, idx) => {
+    parse: (line, lineNumber) => {
         // match a line starting with a '-' or * character, then a space (optional starting whitespace)
         const res = /^\s?[-*]\s{1}(.*)$/.exec(line)
         if (!res) {
@@ -32,13 +33,14 @@ const ULParser : ElementParser = {
             type: ElementType.LIST_ELEMENT,
             value: res[1],
             data: 'ul',
-            idx: idx
+            lineNumber: lineNumber,
+            length: 1
         } as SlideElement
     }
 }
 
 const OLParser : ElementParser = {
-    parse: (line, idx) => {
+    parse: (line, lineNumber) => {
         // match a line starting with a 'NUMBER. ' sequence (optional whitespace)
         const res = /^\s?[0-9]+\.\s{1}(.*)$/.exec(line)
         if (!res) {
@@ -48,13 +50,14 @@ const OLParser : ElementParser = {
             type: ElementType.LIST_ELEMENT,
             value: res[1],
             data: 'ol',
-            idx: idx
+            lineNumber: lineNumber,
+            length: 1
         } as SlideElement
     }
 }
 
 const EmptyParser : ElementParser = {
-    parse: (line, idx) => {
+    parse: (line, lineNumber) => {
         // match empty lines
         const res = /^\s*$/.exec(line)
         if (!res) {
@@ -63,13 +66,14 @@ const EmptyParser : ElementParser = {
         return {
             type: ElementType.EMPTY,
             value: "",
-            idx: idx
+            lineNumber: lineNumber,
+            length: 1
         } as SlideElement
     }
 }
 
 const CommentParser : ElementParser = {
-    parse: (line, idx) => {
+    parse: (line, lineNumber) => {
         // match comments starting with '//'
         const res = /^\/\/(.*)$/.exec(line)
         if (!res) {
@@ -78,13 +82,14 @@ const CommentParser : ElementParser = {
         return {
             type: ElementType.COMMENT,
             value: res[1],
-            idx: idx
+            lineNumber: lineNumber,
+            length: 1
         } as SlideElement
     }
 }
 
 const ResourceParser : ElementParser = {
-    parse: (line, idx) => {
+    parse: (line, lineNumber) => {
         // match resource in the form of ![alt text](url)
         const res1 = /^!\[(.*)\]\((.*)\).*$/.exec(line)
 
@@ -98,7 +103,8 @@ const ResourceParser : ElementParser = {
                     alt: res1[1],
                     url: res1[2]
                 },
-                idx: idx
+                lineNumber: lineNumber,
+                length: 1
             } as SlideElement
         } else if (res2) {
             return {
@@ -107,7 +113,8 @@ const ResourceParser : ElementParser = {
                 data: {
                     url: res2[1]
                 },
-                idx: idx
+                lineNumber: lineNumber,
+                length: 1
             } as SlideElement
         } else {
             return null
@@ -116,26 +123,15 @@ const ResourceParser : ElementParser = {
 }
 
 const TextParser : ElementParser = {
-    parse: (line, idx) => {
-        const flags = [];
-        const multilineCodeStart = /^```.*$/.test(line);
-        const multilineCodeEnd = /^.*```$/.test(line);
-        if (multilineCodeStart) flags.push(FlagType.MULTILINE_CODE_START);
-        if (multilineCodeEnd) flags.push(FlagType.MULTILINE_CODE_END);
-
-        const multilineMathStart = /^\$\$.*$/.test(line);
-        const multilineMathEnd = /^.*\$\$$/.test(line);
-        if (multilineMathStart) flags.push(FlagType.MULTILINE_MATH_START);
-        if (multilineMathEnd) flags.push(FlagType.MULTILINE_MATH_END);
-        
+    parse: (line, lineNumber) => {
         // fallthrough case, return a text element
         return {
             type: ElementType.TEXT,
             value: line,
-            flags: flags,
-            idx: idx
+            lineNumber: lineNumber,
+            length: 1
         } as SlideElement
     }
 }
 
-export const ELEMENT_PARSERS = [HeaderParser, OLParser, ULParser, EmptyParser, CommentParser, ResourceParser, TextParser]
+export const SINGLELINE_ELEMENT_PARSERS = [HeaderParser, OLParser, ULParser, EmptyParser, CommentParser, ResourceParser, TextParser]

@@ -1,13 +1,10 @@
 import type { Slide, SlideElement } from "./types";
-import { ElementType, FlagType } from "./types";
+import { ElementType } from "./types";
 import { ESC_CHAR } from "./constants";
 
 import { math, display } from "mathlifier";
 
-let accumulator = "";
-
 export const generateHTML = (slide : Slide) => {
-    accumulator = "";
     const html = `
         <div class="slide">
             ${slide.contents.map((element, i) => {
@@ -56,20 +53,10 @@ const elementToHtml = (element : SlideElement, previous : SlideElement | null) :
         out = '<br />\n'
     }
     else if (element.type === ElementType.MULTILINE_CODE) {
-        if (element.flags && element.flags.includes(FlagType.MULTILINE_CODE_START)) {
-            out += '<pre><code>';
-        }
-        out += element.value + '\n';
-        if (element.flags && element.flags.includes(FlagType.MULTILINE_CODE_END)) {
-            out += '</code></pre>';
-        }
+        out = `<pre><code>${element.value}</code></pre>\n`
     }
     else if (element.type === ElementType.MULTILINE_MATH) {
-        accumulator += element.value + '\n';
-        if (element.flags && element.flags.includes(FlagType.MULTILINE_MATH_END)) {
-            out = display(accumulator, { output: 'mathml', overflowAuto: false });
-            accumulator = "";
-        }
+        out = display(element.value, { output: 'mathml', overflowAuto: false });
     }
     else {
         out = `<p>${element.value}</p>\n`

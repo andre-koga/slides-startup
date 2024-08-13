@@ -1,5 +1,6 @@
-import { type Slideshow, type Slide, type SlideElement, FlagType, ElementType } from "./types";
-import { ELEMENT_PARSERS } from "./elementParsers";
+import { type Slideshow, type Slide, type SlideElement, ElementType } from "./types";
+import { SINGLELINE_ELEMENT_PARSERS } from "./singleLineElementParsers";
+import { MULTILINE_ELEMENT_PARSERS } from "./multiLineElementParsers";
 import { ESC_CHAR } from "./constants"; 
 
 // match any lines in the form '---{SLIDEINFO}'
@@ -21,22 +22,21 @@ export const processMarkup = (markup : string) => {
     const lines = markup.split(LINE_SEP_REGEX)
 
     // below code splits up the markdown into metadata lines and slide lines
-    const { metadataLines, slideLines, slideInfo } = splitMarkup(lines);
+    const { metadataLines, slidesLines, slideInfo } = splitMarkup(lines);
 
-    // step 1: parse metadata
     const metadata = parseMetadata(metadataLines);
 
-    const slides = slideLines.map((slideLines, i) => {
-        // step 2: parse slides
-        let slide = parseSlide(slideLines, slideInfo[i]);
+    const slides = slidesLines.map((slideLines, i) => {
+        // start with 'largest' elements: multi-line code blocks and math blocks
+        const part1 = parseMultilineElements(slideLines, slideInfo[i][2]);
 
-        // step 3: deal with multi-line elements like lists and code blocks
-        slide = addMultilineElements(slide, lines);
+        // next do line level elements like headers and quotes
+        const part2 = parseSingleLineElements(part1, slideInfo[i][2]);
 
-        // step 4: deal with intra-line elements like bold and italics
-        slide = addSpans(slide);
+        // finally add decorators like italics and bold to the elements
+        // out = addDecorators(out);
 
-        return slide;
+        return generateSlide(part2, slideInfo[i]);
     });
 
 
@@ -55,10 +55,12 @@ const preprocessMarkup = (markup : string) => {
     markup = markup.replaceAll(/\r\n/g, '\n');
     markup = markup.replaceAll(/\r/g, '\n');
 
-    // replace special characters
+    // todo: special characters for replacement
+    /*
     markup = markup.replaceAll(/&/g, '&amp;');
     markup = markup.replaceAll(/</g, '&lt;');
     markup = markup.replaceAll(/>/g, '&gt;');
+    */
 
     // escape special characters
     markup = markup.replaceAll(ESC_CHAR, `${ESC_CHAR}${ESC_CHAR}`);
@@ -68,7 +70,7 @@ const preprocessMarkup = (markup : string) => {
 
 function splitMarkup(lines: string[]) {
     const metadataLines: string[] = [];
-    const slideLines: string[][] = [];
+    const slidesLines: string[][] = [];
     const slideInfo : [string, string, number][] = []; // name, template, line idx
     let inMetadata = true;
     lines.forEach((line, i) => {
@@ -76,14 +78,14 @@ function splitMarkup(lines: string[]) {
         if (isNewSlide) {
             inMetadata = false;
             slideInfo.push([isNewSlide[1], isNewSlide[2], i]);
-            slideLines.push([]);
+            slidesLines.push([]);
         } else if (inMetadata) {
             metadataLines.push(line);
         } else {
-            slideLines[slideLines.length - 1].push(line);
+            slidesLines[slidesLines.length - 1].push(line);
         }
     });
-    return { metadataLines, slideLines, slideInfo };
+    return { metadataLines, slidesLines, slideInfo };
 }
 
 /**
@@ -102,76 +104,55 @@ const parseMetadata = (metadataLines : string[]) => {
 }
 
 /**
- * @param {string[]} slideLines: array of lines in a slide
- * @param {string} slideName: name of the slide
- * @param {[string, string, number]} slideInfo: [name, template, line idx] of the slide
- * @returns {Slide}: map of metadata key-value pairs
+ * @param {string[]} lines array of the strings representing the lines in a slide
+ * @param {number} lineNumber: the line number of the first line in the slide
+ * @returns {(string | SlideElement)[]}: the given array with mutliline elements replaced with SlideElements
  */
-const parseSlide = (slideLines : string[], slideInfo : [string, string, number]) => {
-    const elements : SlideElement[] = [];
-    slideLines.forEach((line, i) => {
-        ELEMENT_PARSERS.some((parser) => {
-            const elem = parser.parse(line, i + slideInfo[2] + 1);
-            if (elem) {
-                elements.push(elem);
-                return true;
-            }
-        })
-    })
-    return {
-        title: slideInfo[0],
-        contents: elements,
-        template: slideInfo[1],
-        idx: slideInfo[2]
-    } as Slide;
-}
-
-const addMultilineElements = (slide : Slide, lines : string[]) => {
-    slide = addMultilineElement(slide, lines, FlagType.MULTILINE_CODE_START, FlagType.MULTILINE_CODE_END, ElementType.MULTILINE_CODE, '```', '```');
-    slide = addMultilineElement(slide, lines, FlagType.MULTILINE_MATH_START, FlagType.MULTILINE_MATH_END, ElementType.MULTILINE_MATH, '$$', '$$');
-
-    return slide;
-}
-
-const addMultilineElement = (slide : Slide, lines : string[], startFlag : FlagType, endFlag : FlagType, elemType : ElementType, startText : string, endText : string) => {
-    let multilineStart : number | null = null;
-    for (let i = 0; i < slide.contents.length; i++) {
-        const element = slide.contents[i];
-        if (!element.flags) {
-            continue;
-        }
-        if (multilineStart === null && element.flags.includes(startFlag)) {
-            multilineStart = i;
-        }
-        if (multilineStart !== null && element.flags.includes(endFlag)) {
-            // catches the edge case of, for instance, a line with only '```'
-            if (i === multilineStart && slide.contents[i].value.length < startText.length + endText.length) {
-                continue;
-            }
-            // replace each element of the code blocks with the appropriate element
-            for (let j = multilineStart; j <= i; j++) {
-                // deal with cases like a header in the middle of a block
-                // without this, the '##' would be missing
-                slide.contents[j].value = lines[slide.contents[j].idx];
-                let flags = [];
-                if (j === multilineStart) {
-                    // remove the starting ```
-                    flags.push(startFlag)
-                    slide.contents[j].value = slide.contents[j].value.slice(startText.length);
-                }
-                if (j === i) {
-                    // remove the ending ```
-                    flags.push(endFlag)
-                    slide.contents[j].value = slide.contents[j].value.slice(0, -endText.length);
-                }
-                slide.contents[j].flags = flags;
-                slide.contents[j].type = elemType;
-                multilineStart = null;
-            }
-        }
+const parseMultilineElements = (lines : (string | SlideElement)[], lineNumber : number) : (string | SlideElement)[] => {
+    for (const parser of MULTILINE_ELEMENT_PARSERS) {
+        lines = parser.parse(lines, lineNumber);
     }
 
-    return slide;
+    return lines;
+}
+
+/**
+ * @param {(string | SlideElement)[]} slideLines: array of lines in a slide
+ * @param {number} lineNumber: the line number of the first line in the slide
+ * @returns {SlideElement[]}: array of lines with strings replaced with SlideElements
+ */
+const parseSingleLineElements = (slideLines : (string | SlideElement)[], lineNumber : number) : SlideElement[] => {
+    let currLine = lineNumber;
+    const out : SlideElement[] = []
+    slideLines.forEach((line) => {
+        if (typeof line !== 'string') {
+            // already parsed element (multiline)
+            currLine += line.length;
+            out.push(line);
+            return;
+        }
+        currLine += 1;
+        for (const parser of SINGLELINE_ELEMENT_PARSERS) {
+            const elem = parser.parse(line, currLine);
+            if (elem) {
+                out.push(elem);
+                break;
+            }
+        }
+    })
+    return out;
+}
+
+
+
+const generateSlide = (elements : SlideElement[], slideInfo : [string, string, number]) : Slide => {
+    const [name, template, lineNumber] = slideInfo;
+    return {
+        title: name,
+        template: template,
+        contents: elements,
+        lineNumber: lineNumber
+    } as Slide;
 }
 
 const addSpans = (slide : Slide) => {
