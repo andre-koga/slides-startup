@@ -117,15 +117,16 @@ const ResourceParser : ElementParser = {
 
 const TextParser : ElementParser = {
     parse: (line, idx) => {
+        const flags = [];
         const multilineCodeStart = /^```.*$/.test(line);
         const multilineCodeEnd = /^.*```$/.test(line);
-        const flags = [];
-        if (multilineCodeStart) {
-            flags.push(FlagType.MULTILINE_CODE_START);
-        }
-        if (multilineCodeEnd) {
-            flags.push(FlagType.MULTILINE_CODE_END);
-        }
+        if (multilineCodeStart) flags.push(FlagType.MULTILINE_CODE_START);
+        if (multilineCodeEnd) flags.push(FlagType.MULTILINE_CODE_END);
+
+        const multilineMathStart = /^\$\$.*$/.test(line);
+        const multilineMathEnd = /^.*\$\$$/.test(line);
+        if (multilineMathStart) flags.push(FlagType.MULTILINE_MATH_START);
+        if (multilineMathEnd) flags.push(FlagType.MULTILINE_MATH_END);
         
         // fallthrough case, return a text element
         return {

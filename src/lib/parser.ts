@@ -127,33 +127,45 @@ const parseSlide = (slideLines : string[], slideInfo : [string, string, number])
 }
 
 const addMultilineElements = (slide : Slide, lines : string[]) => {
+    slide = addMultilineElement(slide, lines, FlagType.MULTILINE_CODE_START, FlagType.MULTILINE_CODE_END, ElementType.MULTILINE_CODE, '```', '```');
+    slide = addMultilineElement(slide, lines, FlagType.MULTILINE_MATH_START, FlagType.MULTILINE_MATH_END, ElementType.MULTILINE_MATH, '$$', '$$');
+
+    return slide;
+}
+
+const addMultilineElement = (slide : Slide, lines : string[], startFlag : FlagType, endFlag : FlagType, elemType : ElementType, startText : string, endText : string) => {
     let multilineStart : number | null = null;
     for (let i = 0; i < slide.contents.length; i++) {
         const element = slide.contents[i];
         if (!element.flags) {
             continue;
         }
-        if (multilineStart === null && element.flags.includes(FlagType.MULTILINE_CODE_START)) {
+        if (multilineStart === null && element.flags.includes(startFlag)) {
             multilineStart = i;
         }
-        else if (multilineStart !== null && element.flags.includes(FlagType.MULTILINE_CODE_END)) {
-            // replace each element of the code blocks with a MULTILINE_CODE element
+        if (multilineStart !== null && element.flags.includes(endFlag)) {
+            // catches the edge case of, for instance, a line with only '```'
+            if (i === multilineStart && slide.contents[i].value.length < startText.length + endText.length) {
+                continue;
+            }
+            // replace each element of the code blocks with the appropriate element
             for (let j = multilineStart; j <= i; j++) {
-                // deal with cases like a header in the middle of a code block
+                // deal with cases like a header in the middle of a block
                 // without this, the '##' would be missing
                 slide.contents[j].value = lines[slide.contents[j].idx];
+                let flags = [];
                 if (j === multilineStart) {
                     // remove the starting ```
-                    slide.contents[j].flags = [FlagType.MULTILINE_CODE_START]
-                    slide.contents[j].value = slide.contents[j].value.slice(3);
-                } else if (j === i) {
-                    // remove the ending ```
-                    slide.contents[j].flags = [FlagType.MULTILINE_CODE_END]
-                    slide.contents[j].value = slide.contents[j].value.slice(0, -3);
-                } else {
-                    slide.contents[j].flags = [];
+                    flags.push(startFlag)
+                    slide.contents[j].value = slide.contents[j].value.slice(startText.length);
                 }
-                slide.contents[j].type = ElementType.MULTILINE_CODE;
+                if (j === i) {
+                    // remove the ending ```
+                    flags.push(endFlag)
+                    slide.contents[j].value = slide.contents[j].value.slice(0, -endText.length);
+                }
+                slide.contents[j].flags = flags;
+                slide.contents[j].type = elemType;
                 multilineStart = null;
             }
         }

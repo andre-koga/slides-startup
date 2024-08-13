@@ -22,6 +22,7 @@ export type SlideElement = {
 export enum ElementType {
     HEADER = 'header',
     MULTILINE_CODE = 'multilineCode',
+    MULTILINE_MATH = 'multilineMath',
     LIST_ELEMENT = 'listElement',
     COMMENT = 'comment',
     EMPTY = 'empty',
@@ -31,5 +32,7 @@ export enum ElementType {
 
 export enum FlagType {
     MULTILINE_CODE_START = 'multilineCodeStart',
-    MULTILINE_CODE_END = 'multilineCodeEnd'
+    MULTILINE_CODE_END = 'multilineCodeEnd',
+    MULTILINE_MATH_START = 'multilineMathStart',
+    MULTILINE_MATH_END = 'multilineMathEnd'
 }
