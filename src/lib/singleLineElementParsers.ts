@@ -8,7 +8,7 @@ type ElementParser = {
 const HeaderParser : ElementParser = {
     parse: (line, lineNumber) => {
         // match 1-6 '#' characters at the beginning of the line
-        const res = /^(#{1,6})(.*$)/.exec(line)
+        const res = /^(#{1,6})(.*)$/.exec(line)
         if (!res) {
             return null
         }
