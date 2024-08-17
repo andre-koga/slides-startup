@@ -27,7 +27,7 @@ li {
 
 /* customize vertical scrollbar */
 ::-webkit-scrollbar {
-	width: 12px;
+	width: 11px;
 }
 ::-webkit-scrollbar-track {
 	@apply bg-[#F4F8F9] dark:bg-[#151B20];
