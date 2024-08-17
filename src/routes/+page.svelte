@@ -28,7 +28,7 @@ const onInput = () => {
 </script>
 
 <div class="relative grid grid-cols-2 items-stretch gap-1 p-1 overflow-hidden">
-	<div class="flex overflow-y-scroll">
+	<div class="flex">
 		<numbers class="grid font-jet dark:bg-[#141B20] text-gray-400 dark:text-slate-600 text-sm py-2 pl-4 pr-2 rounded-l-md bg-[#F3F8F9] place-content-start">
 			{#each [...Array(100).keys()] as number}
 				<div class="text-end ">{number}</div>
@@ -37,7 +37,7 @@ const onInput = () => {
 		<textarea
 		bind:value={markup}
 		on:input={onInput}
-		class="resize-none flex-grow h-[calc(100vh-3.5rem)] rounded-r-md font-jet text-sm p-2 dark:bg-gray-800 dark:text-slate-300"
+		class="resize-none overflow-y-scroll flex-grow h-[calc(100vh-3.5rem)] rounded-r-md font-jet text-sm p-2 dark:bg-gray-800 dark:text-slate-300"
 		></textarea>
 	</div>
 	<div class="flex h-[calc(100vh-3.5rem)] flex-col text-black gap-1 overflow-y-scroll">
