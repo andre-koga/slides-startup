@@ -2,6 +2,8 @@
 import { processMarkup } from '$lib/parser';
 import { generateHTML } from '$lib/htmlGenerator';
 import { type Slideshow } from '$lib/types';
+import '@fontsource/jetbrains-mono/400.css';
+import '@fontsource/jetbrains-mono/600.css';
 
 let markup = `template=test.template
 ---Slide 1
@@ -25,17 +27,26 @@ const onInput = () => {
 };
 </script>
 
-<div class="w-full h-full flex flex-row overflow-hidden">
+<div class="relative grid grid-cols-2 items-stretch gap-1 p-1 overflow-hidden">
 	<textarea
 		bind:value={markup}
 		on:input={onInput}
-		class="basis-2/3 resize-none overflow-scroll p-5"
+		class="resize-none h-[calc(100vh-3.5rem)] rounded-md font-jet text-sm overflow-y-scroll p-5 dark:bg-gray-800 dark:text-slate-300"
 	/>
-	<div class="basis-1/3 overflow-scroll">
+	<div class="flex h-[calc(100vh-3.5rem)] flex-col text-black gap-1 overflow-y-scroll">
 		{#each slideshow.slides as slide}
-			<div class="m-5 p-5 aspect-video border-2 border-black bg-white">
-				{@html generateHTML(slide)}
+			<div class="aspect-video p-2 bg-white rounded">
+				<div class="overflow-hidden aspect-video">
+					{@html generateHTML(slide)}
+				</div>
 			</div>
 		{/each}
+		
 	</div>
 </div>
+
+<style>
+	textarea {
+		font-variant-ligatures: none;
+	}
+</style>

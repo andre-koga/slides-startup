@@ -1,16 +1,40 @@
 @tailwind base;
-/* temporary but makes testing look better */
-h1 {
-    @apply text-3xl;
-}
-h2 {
-    @apply text-2xl;
-}
-h3 {
-    @apply text-xl;
-}
-h4 {
-    @apply text-lg;
-}
 @tailwind components;
 @tailwind utilities;
+
+/* temporary but makes testing look better */
+h1 {
+	@apply text-[2.8vw];
+}
+h2 {
+	@apply text-[2.4vw];
+}
+h3 {
+	@apply text-[2vw];
+}
+h4 {
+	@apply text-[1.7vw];
+}
+p,
+ul,
+li {
+	@apply text-[1.4vw];
+}
+
+.katex {
+	@apply text-[1.4vw];
+}
+
+/* customize vertical scrollbar */
+::-webkit-scrollbar {
+	width: 12px;
+}
+::-webkit-scrollbar-track {
+	@apply bg-[#F4F8F9] dark:bg-[#151B20];
+}
+::-webkit-scrollbar-thumb {
+	@apply bg-slate-600;
+}
+::-webkit-scrollbar-thumb:hover {
+	@apply bg-slate-700;
+}

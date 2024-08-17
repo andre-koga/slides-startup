@@ -20,7 +20,7 @@ import white from '$assets/white.svg';
 	@apply items-center gap-1.5;
 }
 img {
-	@apply h-6 w-6;
+	@apply w-6;
 }
 h1 {
 	@apply text-xl font-extrabold;

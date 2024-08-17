@@ -16,14 +16,14 @@ import { theme } from '$stores/themeStore.js';
 <div
 	class:bg-light={$theme == 'light'}
 	class:bg-dark={$theme == 'dark'}
-	class="bg-[#E4E9EB] font-text text-black dark:bg-[#0C1117] dark:text-white h-screen overflow-hidden"
+	class="bg-[#E4E9EB] font-text text-black dark:bg-[#0C1117] dark:text-white overflow-hidden h-screen"
 >
 	<Header />
 
-	<div class="flex h-full">
+	<div class="grid grid-cols-8">
 		<Sidebar />
 
-		<main class="relative z-0 h-full w-full">
+		<main class="col-span-7">
 			<slot />
 		</main>
 	</div>

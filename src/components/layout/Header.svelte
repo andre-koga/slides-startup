@@ -1,6 +1,6 @@
 <script lang="ts">
 // Icons
-import { Sun, Moon, Share, Dot } from 'lucide-svelte';
+import { Sun, Moon, Share2, FileText } from 'lucide-svelte';
 
 // Stores
 import { theme } from '$stores/themeStore.js';
@@ -18,13 +18,20 @@ function toggleTheme() {
 }
 </script>
 
-<header class="flex gap-2 bg-[#F5F8F9] px-6 py-2 dark:bg-[#161B20]">
-	<Logo />
+<header class="flex gap-2 bg-[#F5F8F9] px-6 py-2 dark:bg-[#161B20] items-stretch h-12">
+	<a class="place-self-center" href="/">
+		<Logo />
+	</a>
 	<divider class="flex-grow"></divider>
 	<button
-		class="rounded-lg border border-[#626C76] px-2 text-[#626C76] dark:border-[#8C96A0] dark:text-[#8C96A0]"
+		class="button "
 	>
-		<Share class="block h-4" /></button
+		<FileText class="block h-4" /></button
+	>
+	<button
+		class="button"
+	>
+		<Share2 class="block h-4" /></button
 	>
 	<button
 		on:click={toggleTheme}
@@ -35,3 +42,9 @@ function toggleTheme() {
 		<Moon class="hidden h-4 dark:block" />
 	</button>
 </header>
+
+<style>
+	.button {
+		@apply hover:bg-[#626C76] dark:border-opacity-50 hover:bg-opacity-20 rounded-lg border border-[#626C76] border-opacity-50 px-2 text-[#626C76] dark:border-[#8C96A0] dark:text-[#8C96A0]
+	}
+</style>
