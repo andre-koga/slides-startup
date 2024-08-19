@@ -16,7 +16,7 @@ import { theme } from '$stores/themeStore.js';
 <div
 	class:bg-light={$theme == 'light'}
 	class:bg-dark={$theme == 'dark'}
-	class="bg-[#E4E9EB] font-text text-black dark:bg-[#0C1117] dark:text-white overflow-hidden h-screen"
+	class="h-screen overflow-hidden bg-[#E4E9EB] font-text text-black dark:bg-[#0C1117] dark:text-white"
 >
 	<Header />
 

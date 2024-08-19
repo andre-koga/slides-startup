@@ -1,1 +1,1 @@
-export const ESC_CHAR = '¨'
+export const ESC_CHAR = '¨';
