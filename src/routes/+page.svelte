@@ -6,8 +6,7 @@ import '@fontsource/jetbrains-mono/400.css';
 import '@fontsource/jetbrains-mono/600.css';
 import type { Slideshow } from '$lib/types';
 
-let text = [
-	`template=test.template
+let initialText = `template=test.template
 
 ---Slide 1
 # A **Great** Day
@@ -23,9 +22,9 @@ Here's why it's so great:
 - \$e^{i\\pi} + 1 = 0\$
 - \$\\int\\limits_{0}^{10}e^x = e^x\\Big|_{0}^{10} = e^{10} - 1\$
 - \$1 + 1 = 2\$`
-];
+;
 
-let lines = text[0].split('\n');
+let lines = initialText[0].split('\n');
 
 const keyPress = (event: KeyboardEvent) => {
     if (event.key === 'Enter') {
@@ -42,27 +41,12 @@ const keyPress = (event: KeyboardEvent) => {
 </script>
 
 <div class="relative grid grid-cols-2 items-stretch gap-1 overflow-hidden p-1">
-	<text-editor class="rounded-lg text-sm bg-slate-100 dark:bg-slate-800 overflow-hidden border-4 border-slate-300 dark:border-slate-700 flex flex-col font-jet">
-		<div class="editor-line grid grid-cols-2 h-2">
-			<number class="bg-slate-300 dark:bg-slate-700 pr-2 pl-4 text-right"></number>
-			<div id="line-first" role="textbox">
-				
-			</div>
-		</div>
-		{#each lines as lineText, i}
-		<div class="editor-line grid grid-cols-2">
-			<number class="bg-slate-300 select-none dark:bg-slate-700 pr-2 pl-4 text-right dark:text-slate-500 text-slate-400 font-semibold">{i + 1}</number>
-			<div contenteditable="true" on:keypress={keyPress} id="line-{i}" role="textbox" tabindex="0" class="focus:bg-slate-200 dark:focus:bg-slate-900 px-1.5 dark:text-slate-200 {lineText.substring(0, 3) == "---" ? "text-red-600 dark:text-red-500" : ""}">
-				{lineText}
-			</div>
-		</div>
-		{/each}
-		<div class="editor-line grid grid-cols-2 flex-grow">
-			<number class="bg-slate-300 dark:bg-slate-700 pr-2 pl-4 text-right"></number>
-			<div id="line-last" role="textbox">
-				
-			</div>
-		</div>
+	<text-editor class="relative rounded-lg text-sm bg-slate-100 dark:bg-slate-800 overflow-hidden border-4 border-slate-300 dark:border-slate-700 flex flex-col font-jet">
+		
+		<!-- make textarea cover the exact dimensions of the text-editor and make it invisible but still interactable -->
+		<textarea class="opacity-50 absolute pl-1.5 top-0 pr-1.5 pt-[0.5rem] bottom-0 left-12 right-0 text-black">{initialText}</textarea>
+
+		<!-- for each -->
 	</text-editor>
 	<slides-view class="flex h-[calc(100vh-3.5rem)] flex-col gap-1 overflow-y-scroll text-black">
 		<!-- for now idk how to generate the slides -->
