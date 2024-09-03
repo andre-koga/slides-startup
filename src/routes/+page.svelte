@@ -24,30 +24,27 @@ Here's why it's so great:
 - \$1 + 1 = 2\$`
 ;
 
-let lines = initialText[0].split('\n');
+let lines = initialText.split('\n');
 
-const keyPress = (event: KeyboardEvent) => {
-    if (event.key === 'Enter') {
-	// prevent default
-	event.preventDefault();
-      const index = parseInt((event.target as HTMLElement).id.split('-')[1]);
-      lines = [...lines.slice(0, index + 1), '', ...lines.slice(index + 1)];
-	  tick();
-	  // focus on the new line
-	  const newLine = document.getElementById(`line-${index + 1}`);
-	  if (newLine) newLine.focus();
-    }
-  };
 </script>
 
 <div class="relative grid grid-cols-2 items-stretch gap-1 overflow-hidden p-1">
-	<text-editor class="relative rounded-lg text-sm bg-slate-100 dark:bg-slate-800 overflow-hidden border-4 border-slate-300 dark:border-slate-700 flex flex-col font-jet">
+	<text-editor class="relative rounded-lg bg-slate-100 dark:bg-slate-800 overflow-hidden border-4 border-slate-300 dark:border-slate-700 flex flex-col font-jet">
 		
 		<!-- make textarea cover the exact dimensions of the text-editor and make it invisible but still interactable -->
-		<textarea class="opacity-50 absolute pl-1.5 top-0 pr-1.5 pt-[0.5rem] bottom-0 left-12 right-0 text-black">{initialText}</textarea>
+		<textarea class="opacity-20 text-sm absolute pl-1.5 top-0 pr-1.5 font-jet pt-[0.5rem] bottom-0 left-12 right-0 text-black">{initialText}</textarea>
 
-		<!-- for each -->
+		<!-- for each line in lines, generate a line with a number on the left side displaying the index + 1 -->
+		<div class="pt-[0.5rem]">
+		{#each lines as line, index}
+			<div class="editor-line grid font-jet items-center" id={`line-${index}`}>
+				<div class="editor-line-number dark:text-slate-400 dark:bg-slate-600 text-right px-2">{index + 1}</div>
+				<div class="editor-line-text dark:text-slate-200 px-1.5">{line}</div>
+			</div>
+		{/each}
+	</div>
 	</text-editor>
+	
 	<slides-view class="flex h-[calc(100vh-3.5rem)] flex-col gap-1 overflow-y-scroll text-black">
 		<!-- for now idk how to generate the slides -->
 		<!-- {#each slideshows as slideshow}
@@ -63,13 +60,10 @@ const keyPress = (event: KeyboardEvent) => {
 </div>
 
 <style>
-	[contenteditable]:focus {
-		outline: none;
-	}
+.editor-line-number, .editor-line-text {
+	@apply text-sm;
+}
 .editor-line {
 	grid-template-columns: 3rem 1fr;
-}
-line {
-	font-variant-ligatures: none;
 }
 </style>
