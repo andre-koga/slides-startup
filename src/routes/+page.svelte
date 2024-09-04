@@ -1,7 +1,6 @@
 <script lang="ts">
 import { processMarkup } from '$lib/parser';
 import { generateHTML } from '$lib/htmlGenerator';
-import { onMount, tick } from 'svelte';
 import '@fontsource/jetbrains-mono/400.css';
 import '@fontsource/jetbrains-mono/600.css';
 import type { Slideshow } from '$lib/types';
@@ -25,13 +24,15 @@ Here's why it's so great:
 ;
 
 let lines = initialText.split('\n');
-  let cursorPosition = { top: 0, left: 0 };
 
 function handleTextareaInput(event: Event) {
     const target = event.target as HTMLTextAreaElement;
     initialText = target.value;
     lines = initialText.split('\n');
-  }
+	slideshow = processMarkup(initialText);
+}
+
+let slideshow: Slideshow = processMarkup(initialText);
 </script>
 
 <div class="relative grid grid-cols-2 items-stretch gap-1 overflow-hidden p-1">
@@ -55,16 +56,14 @@ function handleTextareaInput(event: Event) {
 	
 	<slides-view class="flex h-[calc(100vh-3.5rem)] flex-col gap-1 overflow-y-scroll text-black">
 		<!-- for now idk how to generate the slides -->
-		<!-- {#each slideshows as slideshow}
-			{#each slideshow.slides as slide}
+		{#each slideshow.slides as slide}
 			<div class="aspect-video rounded bg-white p-2">
 				<div class="aspect-video overflow-hidden">
 					{@html generateHTML(slide)}
 				</div>
 			</div>
-			{/each}
-		{/each} -->
-		</slides-view>
+		{/each}
+	</slides-view>
 </div>
 
 <style>
