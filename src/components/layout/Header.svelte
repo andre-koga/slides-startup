@@ -6,8 +6,6 @@ import { Sun, Moon, Share2, FileText } from 'lucide-svelte';
 import { theme } from '$stores/themeStore.js';
 import Logo from '$ui/Logo.svelte';
 
-import '@fontsource/inter/500.css';
-
 // Function to toggle the theme
 function toggleTheme() {
 	theme.update((current) => {
@@ -18,7 +16,7 @@ function toggleTheme() {
 }
 </script>
 
-<header class="flex h-12 items-stretch gap-2 bg-[#F5F8F9] px-6 py-2 dark:bg-[#161B20]">
+<header class="flex h-12 items-stretch gap-2 bg-slate-100 px-6 py-2 dark:bg-slate-900">
 	<a class="place-self-center" href="/">
 		<Logo />
 	</a>

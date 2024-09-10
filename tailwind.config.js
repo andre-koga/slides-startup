@@ -10,6 +10,9 @@ export default {
 			fontFamily: {
 				jet: ['JetBrains Mono', 'sans-serif'],
 				text: ['Inter', 'sans-serif']
+			},
+			colors: {
+				// 'slate-950': '#0C1117'
 			}
 		}
 	},

@@ -2,7 +2,7 @@
 @tailwind components;
 @tailwind utilities;
 
-/* temporary but makes testing look better */
+/* TODO: FIND BETTER SOLUTION FOR SLIDES SCALING */
 h1 {
 	@apply text-[2.8vw];
 }
