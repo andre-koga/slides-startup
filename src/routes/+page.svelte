@@ -1,11 +1,9 @@
 <script lang="ts">
+import type { Slideshow } from '$lib/types';
 import { processMarkup } from '$lib/parser';
 import { generateHTML } from '$lib/htmlGenerator';
 import '@fontsource/jetbrains-mono/400.css';
 import '@fontsource/jetbrains-mono/600.css';
-import type { Slideshow } from '$lib/types';
-import Highlight from 'svelte-highlight';
-import typescript from 'svelte-highlight/languages/typescript';
 
 const code = 'const add = (a: number, b: number) => a + b;';
 

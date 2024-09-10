@@ -8,10 +8,10 @@ export const generateHTML = (slide: Slide) => {
 	const html = `
         <div class="slide">
             ${slide.contents
-			.map((element, i) => {
-				return elementToHtml(element, i === 0 ? null : slide.contents[i - 1]);
-			})
-			.join('')}
+							.map((element, i) => {
+								return elementToHtml(element, i === 0 ? null : slide.contents[i - 1]);
+							})
+							.join('')}
         </div>
     `;
 	return processEscapeChars(html);
