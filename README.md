@@ -1,4 +1,4 @@
-# ![Flux Slides](.github/banner.png)
+# ![Flux Slides](.github/flux.png)
 
 # Flux Slides - B2B Slide Collaboration Startup
 
