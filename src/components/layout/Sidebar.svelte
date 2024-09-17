@@ -1,39 +1,50 @@
 <script lang="ts">
-    import {Eye, GitBranch } from 'lucide-svelte'
+// Icons
+import SidebarButton from '$ui/SidebarButton.svelte';
+import { Eye, GitBranch } from 'lucide-svelte';
 
-    function setTab(tab: number) {
-        enabledTab = tab;
-    }
+const SIDEBAR_TABS = [
+	{
+		name: 'Slides',
+		icon: Eye
+	},
+	{
+		name: 'Git',
+		icon: GitBranch
+	}
+];
 
-    let enabledTab = 0;
+function handleTabSelected(event: CustomEvent) {
+	chosenTab = event.detail.tabID;
+}
+
+let chosenTab = 0;
 </script>
 
-<sidebar class="block p-1 pr-0">
-    <tabs class="mx-auto bg-[#e5e9ea] dark:bg-[#151B20] rounded grid grid-cols-2 text-sm">
-        <button on:click={() => setTab(0)} class="dark:hover:bg-[#1E2936] hover:bg-white p-1 rounded-l {enabledTab == 0 ? "active" : "inactive"}"><Eye class="mx-auto h-5 w-5"/><span class="hidden lg:inline-block">View</span></button>
-        <button on:click={() => setTab(1)} class="dark:hover:bg-[#1E2936] hover:bg-white p-1 rounded-r {enabledTab == 1 ? "active" : "inactive"}"><GitBranch class="mx-auto h-5 w-5"/><span class="hidden lg:inline-block">Git</span></button>
-    </tabs>
-    <content class="block mx-1 md:mx-2 lg:mx-4 my-4">
-        {#if enabledTab === 0}
-            <div>
-                <h2 class="text-xs my-2 font-semibold uppercase">Slides</h2>
-                <p class="text-sm">This is the slides tab</p>
-            </div>
-        {:else}
-           <div>
-                <h2 class="text-xs my-2 font-semibold uppercase">Git</h2>
-                <p class="text-sm">This is the git tab</p>
-            </div>
-        {/if}
-    </content>
+<sidebar>
+	<tabs class="mx-auto grid grid-cols-2 overflow-hidden rounded text-sm">
+		{#each SIDEBAR_TABS as tab, index}
+			<SidebarButton
+				tabID={index}
+				isActive={chosenTab === index}
+				on:tabSelected={handleTabSelected}
+			>
+				<svelte:component this={tab.icon} class="mx-auto h-5 w-5" />
+				<span class="hidden lg:inline-block">{tab.name}</span>
+			</SidebarButton>
+		{/each}
+	</tabs>
+	<content class="mx-1 my-4 block md:mx-2 lg:mx-4">
+		<!-- FIND A BETTER WAY TO DYNAMICALLY SHOW CONTENT {#if chosenTab === 0}
+			<div>
+				<h2 class="my-2 text-xs font-semibold uppercase">Slides</h2>
+				<p class="text-sm">This is the slides tab</p>
+			</div>
+		{:else}
+			<div>
+				<h2 class="my-2 text-xs font-semibold uppercase">Git</h2>
+				<p class="text-sm">This is the git tab</p>
+			</div>
+		{/if} -->
+	</content>
 </sidebar>
-
-<style>
-    .active {
-        @apply bg-white dark:bg-[#1E2936] text-black dark:text-white;
-    }
-
-    .inactive {
-        @apply bg-[#F4F8F9] dark:bg-[#151B20] text-gray-500 dark:text-gray-400;
-    }
-</style>
