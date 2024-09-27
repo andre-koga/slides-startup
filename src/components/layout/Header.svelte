@@ -2,9 +2,14 @@
 // Icons
 import { Sun, Moon, Share2, FileText } from 'lucide-svelte';
 
+// Store to transmit button
+import { writable } from 'svelte/store';
+
 // Stores
 import { theme } from '$stores/themeStore.js';
 import Logo from '$ui/Logo.svelte';
+
+import { pdfStore } from '$lib/stores';
 
 // Function to toggle the theme
 function toggleTheme() {
@@ -14,6 +19,11 @@ function toggleTheme() {
 		return newTheme;
 	});
 }
+
+function onExport() {
+	console.log("EXPORT");
+	pdfStore.update((x) => x + 1); // trigger subscribers
+}
 </script>
 
 <header class="flex h-12 items-stretch gap-2 bg-slate-100 px-6 py-2 dark:bg-slate-900">
@@ -21,7 +31,7 @@ function toggleTheme() {
 		<Logo />
 	</a>
 	<divider class="flex-grow"></divider>
-	<button class="button"> <FileText class="block h-4" /></button>
+	<button class="button" on:click={onExport}> <FileText class="block h-4"/></button>
 	<button class="button"> <Share2 class="block h-4" /></button>
 	<button
 		on:click={toggleTheme}
